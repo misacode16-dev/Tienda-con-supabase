@@ -1,0 +1,112 @@
+---
+const {
+  title = "Autoboutique Olga - Accesorios y Repuestos para Autos en Perú",
+  description = "Tienda online de accesorios y repuestos para autos en Perú: alarmas, autoradios, parlantes, focos LED y sistemas de seguridad. Envíos a Lima y provincias.",
+  image = "/logo-open-graph.png",
+  url = "https://autoboutiqueolga.com",
+  ogTitle = title,
+  ogDescription = description,
+  ogImage = image,
+  ogType = "website",
+  twitterTitle = title,
+  twitterDescription = description,
+  twitterImage = image,
+  alt = title,
+  noindex = false,
+  structuredData = null,
+  preloadImage = null,
+  // Solo se usan cuando ogType="product" (ficha de producto)
+  price = null,
+  priceCurrency = "PEN",
+  availability = null, // "in stock" | "out of stock"
+} = Astro.props;
+
+// Las redes sociales (WhatsApp, Facebook, X) necesitan la URL COMPLETA de la
+// imagen. Las fichas mandan rutas relativas ("/portaplaca/...webp"), así que
+// aquí se convierten siempre a absolutas.
+const SITE_URL = "https://autoboutiqueolga.com";
+const BRAND_OG_IMAGE = "/logo-open-graph.png"; // 1200x630
+
+const toAbsolute = (path) => {
+  if (!path || typeof path !== "string") return "";
+  return path.startsWith("http") ? path : `${SITE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+};
+
+const ogImageRaw = ogImage || image;
+const twitterImageRaw = twitterImage || image;
+const ogImageUrl = toAbsolute(ogImageRaw);
+const twitterImageUrl = toAbsolute(twitterImageRaw);
+
+// 1200x630 solo es verdad para la imagen de marca. Las fotos de producto
+// tienen otras medidas, así que en ese caso no se declaran.
+const ogImageIsBrand = ogImageRaw === BRAND_OG_IMAGE;
+---
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8" />
+<meta name="language" content="es-PE" />
+<meta
+  name="robots"
+  content={noindex
+    ? "noindex, nofollow"
+    : "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+  }
+/>
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={url} />
+
+<meta property="og:type" content={ogType} />
+<meta property="og:title" content={ogTitle || title} />
+<meta property="og:description" content={ogDescription || description} />
+<meta property="og:image" content={ogImageUrl} />
+{ogImageIsBrand && (
+  <>
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+  </>
+)}
+<meta property="og:image:alt" content={alt} />
+<meta property="og:url" content={url} />
+<meta property="og:locale" content="es_PE" />
+<meta property="og:site_name" content="Autoboutique Olga" />
+
+{ogType === "product" && price !== null && (
+  <>
+    <meta property="product:price:amount" content={String(price)} />
+    <meta property="product:price:currency" content={priceCurrency} />
+    {availability && (
+      <meta property="product:availability" content={availability} />
+    )}
+  </>
+)}
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={twitterTitle || title} />
+<meta name="twitter:description" content={twitterDescription || description} />
+<meta name="twitter:image" content={twitterImageUrl} />
+<meta name="twitter:image:alt" content={alt} />
+
+<meta name="geo.region" content="PE-LIM" />
+<meta name="geo.placename" content="Lima, Lima, Perú" />
+<meta name="geo.position" content="-11.982164, -77.062263" />
+
+<link rel="icon" href="/favicon.ico" />
+
+{preloadImage && (
+  <link rel="preload" as="image" href={preloadImage} />
+)}
+
+{
+  Array.isArray(structuredData) ? (
+    structuredData.map((schema) => (
+      <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+    ))
+  ) : (
+    structuredData && (
+      <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+    )
+  )
+}
+
+
+

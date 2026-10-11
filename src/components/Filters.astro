@@ -1,0 +1,358 @@
+---
+// components/Filters.astro
+import { SlidersHorizontal, X, ChevronDown } from '@lucide/astro';
+import products from '../data/products.json';
+
+// Tope del slider = precio más alto del catálogo, redondeado a la decena
+const priceCeiling = Math.ceil(Math.max(...products.map((p) => p.price)) / 10) * 10;
+
+const { categories, initialCategory = "", showCategoryFilter = true } = Astro.props;
+// Nota: ya no se usa un prop `vehicles` con la taxonomía global — el filtro de
+// vehículo ahora se calcula en el navegador a partir de los productos
+// realmente visibles en la categoría activa (ver getCategoryVehiclePool()
+// en el script). Si alguna página todavía pasa `vehicles={...}`, se ignora
+// sin generar error.
+---
+
+<!-- Botón "Filtros" — visible solo en móvil/tablet (lg:hidden). En desktop el sidebar ya está siempre visible. -->
+<button
+  type="button"
+  id="filters-toggle"
+  class="lg:hidden flex items-center gap-2 bg-[#ff5b00] text-white text-sm font-semibold py-2.5 px-4 rounded-md mb-5 w-fit"
+>
+  <SlidersHorizontal class="icon-sm" />
+  Filtros
+</button>
+
+<!-- Overlay — solo aplica en móvil, en desktop queda oculto (display:none via clase lg:hidden) -->
+<div id="filters-overlay" class="lg:hidden fixed inset-0 bg-black/40 z-[299] hidden"></div>
+
+<aside
+  class="w-[85%] max-w-[320px] lg:max-w-none lg:w-[280px] shrink-0 flex flex-col gap-[30px]
+         fixed lg:static top-0 left-0 h-full lg:h-auto bg-white lg:bg-transparent
+         z-[300] lg:z-auto -translate-x-full lg:translate-x-0
+         transition-transform duration-300 ease-in-out
+         px-5 py-6 lg:p-0 overflow-y-auto lg:overflow-visible shadow-2xl lg:shadow-none"
+  id="filters"
+  data-initial-category={initialCategory}
+>
+  <!-- Encabezado — solo visible en móvil, dentro del panel deslizante -->
+  <div class="lg:hidden flex items-center justify-between mb-2">
+    <h2 class="text-lg font-bold text-[#1f1f1f]">Filtros</h2>
+    <button type="button" id="filters-close" aria-label="Cerrar filtros">
+      <X class="icon-md" />
+    </button>
+  </div>
+
+  <!-- Filtro por vehículo -->
+  <div class="border-b border-[#f0f0f0] pb-6" id="vehicle-filter-block">
+    <h2 class="text-[1.1rem] font-bold text-[#111111] mb-[18px]">Filtros</h2>
+    <form class="flex flex-col gap-2.5" id="vehicle-filter-form">
+      <div class="relative">
+        <select id="filter-brand" class="w-full py-2.5 px-3.5 bg-[#f5f5f5] border border-[#f5f5f5] rounded-md text-[0.88rem] text-[#333] appearance-none cursor-pointer">
+          <option value="">Seleccionar marca</option>
+        </select>
+      </div>
+      <div class="relative">
+        <select id="filter-model" class="w-full py-2.5 px-3.5 bg-[#f5f5f5] border border-[#f5f5f5] rounded-md text-[0.88rem] text-[#333] appearance-none cursor-pointer">
+          <option value="">Modelo de productos</option>
+        </select>
+      </div>
+      <button
+        type="button"
+        id="vehicle-filter-reset"
+        class="text-[0.82rem] text-[#ff5b00] font-semibold text-left mt-1 hover:underline hidden"
+      >
+        Quitar filtro
+      </button>
+    </form>
+  </div>
+
+  <!-- Filtro por categoría -->
+  {showCategoryFilter && (
+    <div class="border-b border-[#f0f0f0] pb-6">
+      <button
+        type="button"
+        id="category-dropdown-toggle"
+        class="flex items-center justify-between w-full text-[1.1rem] font-bold text-[#111111] mb-[18px] lg:pointer-events-none"
+      >
+        Categorías
+        <ChevronDown id="category-dropdown-arrow" class="w-4 h-4 text-[#666] transition-transform duration-200 lg:hidden" />
+      </button>
+      <ul id="category-list" class="hidden lg:flex flex-col gap-2.5 list-none">
+        <li>
+          <button
+            type="button"
+            class="filter-category-btn text-[0.92rem] text-left w-full text-[#ff5b00] font-semibold transition-colors"
+            data-filter-category=""
+          >
+            Todas
+          </button>
+        </li>
+        {categories.map((cat) => (
+          <li>
+            <button
+              type="button"
+              class="filter-category-btn text-[0.92rem] text-left w-full text-[#000000] hover:text-[#ff5b00] transition-colors"
+              data-filter-category={cat.slug}
+            >
+              {cat.name}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+
+  <!-- Filtro por precio -->
+  <div>
+    <h2 class="text-[1.1rem] font-bold text-[#111111] mb-[18px]">Precio máximo</h2>
+    <input
+      type="range"
+      min="0"
+      max={priceCeiling}
+      step="10"
+      value={priceCeiling}
+      id="price-range"
+      class="w-full accent-[#ff5b00]"
+    />
+    <p class="text-[0.88rem] text-[#555] mt-2">Hasta S/ <span id="price-range-value">{priceCeiling}</span></p>
+  </div>
+
+<!-- Botón aplicar — solo móvil, cierra el panel y muestra los resultados ya filtrados -->
+  <button
+    type="button"
+    id="filters-apply"
+    class="lg:hidden mt-auto bg-[#ff5b00] text-white font-bold py-3 rounded-md"
+  >
+    Ver resultados
+  </button>
+</aside>
+
+<script>
+  const filtersEl = document.getElementById("filters");
+  const priceRange = document.getElementById("price-range");
+  const priceRangeValue = document.getElementById("price-range-value");
+
+  const brandSelect = document.getElementById("filter-brand");
+  const modelSelect = document.getElementById("filter-model");
+  const resetVehicleBtn = document.getElementById("vehicle-filter-reset");
+  const vehicleFilterBlock = document.getElementById("vehicle-filter-block");
+
+  let activeCategory = "";
+  let maxPrice = priceRange ? parseFloat(priceRange.max) : Infinity;
+  let vehicleSelection = { brand: "", model: "" };
+
+  // ---- Panel móvil (toggle / overlay / cerrar) ----
+  const toggleBtn = document.getElementById("filters-toggle");
+  const closeBtn = document.getElementById("filters-close");
+  const applyBtn = document.getElementById("filters-apply");
+  const overlay = document.getElementById("filters-overlay");
+
+  function openFilters() {
+    filtersEl?.classList.remove("-translate-x-full");
+    overlay?.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeFilters() {
+    filtersEl?.classList.add("-translate-x-full");
+    overlay?.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+
+  toggleBtn?.addEventListener("click", openFilters);
+  closeBtn?.addEventListener("click", closeFilters);
+  applyBtn?.addEventListener("click", () => {
+    applyFilters();
+    closeFilters();
+  });
+  overlay?.addEventListener("click", closeFilters);
+
+  // true en móvil/tablet (<lg), false en desktop — se apoya en el mismo
+  // breakpoint que ya usa Tailwind (el botón "Filtros" es lg:hidden), así
+  // no hay que mantener un número de píxeles duplicado en el JS.
+  function isMobile() {
+    return !!toggleBtn && getComputedStyle(toggleBtn).display !== "none";
+  }
+
+  // Dropdown de categorías — solo colapsable en móvil (cerrado por defecto).
+  // En desktop el <ul> siempre está visible vía la clase lg:flex del HTML,
+  // así que el click ahí no hace nada (early return).
+  const categoryDropdownToggle = document.getElementById("category-dropdown-toggle");
+  const categoryList = document.getElementById("category-list");
+  const categoryDropdownArrow = document.getElementById("category-dropdown-arrow");
+
+  categoryDropdownToggle?.addEventListener("click", () => {
+    if (!isMobile()) return;
+    const isOpen = categoryList?.classList.toggle("hidden") === false;
+    if (categoryDropdownArrow) {
+      categoryDropdownArrow.style.transform = isOpen ? "rotate(180deg)" : "rotate(0deg)";
+    }
+  });
+
+  // Pool de vehículos "real": solo los que traen los productos que pertenecen
+  // a la categoría activa en este momento (no toda la taxonomía global).
+  // Así, si estás en "Alarma" solo ves años/marcas de productos de alarma,
+  // y si la categoría no usa compatibilidad de vehículo (ej. "Aceite"),
+  // el pool sale vacío y el bloque completo se oculta solo.
+  function getCategoryVehiclePool() {
+    const cards = document.querySelectorAll("[data-product-card]");
+    let pool = [];
+    cards.forEach((card) => {
+      const cardCategory = card.getAttribute("data-category");
+      if (activeCategory && cardCategory !== activeCategory) return;
+      try {
+        const productFiltros = JSON.parse(card.getAttribute("data-filtros") || "[]");
+        pool = pool.concat(productFiltros);
+      } catch {
+        // ignora productos con data-filtros inválido
+      }
+    });
+    return pool;
+  }
+
+  // Devuelve las combinaciones de vehículos (dentro del pool de la categoría
+  // activa) que cumplen con la selección actual, ignorando el campo que se
+  // pasa en `exceptField` (para poder recalcular sus propias opciones)
+  function matchingVehicles(exceptField) {
+    const pool = getCategoryVehiclePool();
+    return pool.filter((v) =>
+      Object.entries(vehicleSelection).every(([field, value]) => {
+        if (field === exceptField) return true;
+        if (!value) return true;
+        return v[field] === value;
+      })
+    );
+  }
+
+  function uniqueValues(list, field) {
+    return Array.from(new Set(list.map((v) => v[field]).filter(Boolean))).sort();
+  }
+
+  function fillSelect(selectEl, values, placeholder, currentValue) {
+    if (!selectEl) return;
+    const options = [`<option value="">${placeholder}</option>`]
+      .concat(values.map((v) => `<option value="${v}">${v}</option>`));
+    selectEl.innerHTML = options.join("");
+    selectEl.value = values.includes(currentValue) ? currentValue : "";
+  }
+
+  function refreshVehicleSelects() {
+    fillSelect(brandSelect, uniqueValues(matchingVehicles("brand"), "brand"), "Seleccionar marca", vehicleSelection.brand);
+    fillSelect(modelSelect, uniqueValues(matchingVehicles("model"), "model"), "Modelo de coche", vehicleSelection.model);
+
+    const hasSelection = Object.values(vehicleSelection).some(Boolean);
+    resetVehicleBtn?.classList.toggle("hidden", !hasSelection);
+
+    // Si la categoría activa no tiene NINGÚN producto con datos de vehículo
+    // (ej. una categoría de aceites, sin compatibilidad de auto), no tiene
+    // sentido mostrar los selects vacíos — se oculta el bloque completo.
+    const poolEmpty = getCategoryVehiclePool().length === 0;
+    vehicleFilterBlock?.classList.toggle("hidden", poolEmpty);
+  }
+
+  function resetVehicleSelection() {
+    vehicleSelection = { brand: "", model: "" };
+    refreshVehicleSelects();
+  }
+
+  function onVehicleSelectChange(field, value) {
+    vehicleSelection[field] = value;
+    // si cambia un campo "de arriba" en la cascada, los de abajo pierden validez si ya no matchean
+    ["brand", "model"].forEach((f) => {
+      if (f === field) return;
+      const stillValid = matchingVehicles(null).some((v) => v[f] === vehicleSelection[f]);
+      if (!stillValid) vehicleSelection[f] = "";
+    });
+    refreshVehicleSelects();
+    // En móvil, el filtro queda "pendiente" hasta que el usuario toque
+    // "Ver resultados" — así sabe explícitamente cuándo se aplicó.
+    if (!isMobile()) applyFilters();
+  }
+
+  brandSelect?.addEventListener("change", (e) => onVehicleSelectChange("brand", e.target.value));
+  modelSelect?.addEventListener("change", (e) => onVehicleSelectChange("model", e.target.value));
+
+  resetVehicleBtn?.addEventListener("click", () => {
+    resetVehicleSelection();
+    if (!isMobile()) applyFilters();
+  });
+
+  // Un producto matchea el filtro de vehículo si alguna de sus combinaciones
+  // cumple con TODOS los campos seleccionados actualmente. Si no tiene ninguna
+  // combinación real (filtros vacío, o solo con brand/model en blanco), NO se
+  // muestra en cuanto haya un filtro activo — ya no se trata como "universal".
+  function productMatchesFiltros(productFiltros) {
+    const hasActiveFilter = Object.values(vehicleSelection).some(Boolean);
+    if (!hasActiveFilter) return true;
+    if (!productFiltros || productFiltros.length === 0) return false;
+
+    return productFiltros.some((pv) =>
+      Object.entries(vehicleSelection).every(([field, value]) => !value || pv[field] === value)
+    );
+  }
+
+  function applyFilters() {
+    const cards = document.querySelectorAll("[data-product-card]");
+    cards.forEach((card) => {
+      const category = card.getAttribute("data-category");
+      const price = parseFloat(card.getAttribute("data-price") || "0");
+
+      let productFiltros = [];
+      try {
+        productFiltros = JSON.parse(card.getAttribute("data-filtros") || "[]");
+      } catch {
+        productFiltros = [];
+      }
+
+      const matchCategory = !activeCategory || category === activeCategory;
+      const matchPrice = price <= maxPrice;
+      const matchVehicle = productMatchesFiltros(productFiltros);
+
+      card.style.display = matchCategory && matchPrice && matchVehicle ? "" : "none";
+    });
+
+    document.dispatchEvent(new CustomEvent("filters:changed"));
+  }
+
+  filtersEl?.querySelectorAll("[data-filter-category]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      activeCategory = btn.getAttribute("data-filter-category") || "";
+      filtersEl.querySelectorAll("[data-filter-category]").forEach((b) => {
+        b.classList.remove("text-[#ff5b00]", "font-semibold");
+        b.classList.add("text-[#000000]");
+      });
+      btn.classList.remove("text-[#000000]");
+      btn.classList.add("text-[#ff5b00]", "font-semibold");
+      // Al cambiar de categoría, el filtro de vehículo se restablece:
+      // las marcas/años de la categoría anterior ya no aplican acá.
+      resetVehicleSelection();
+      // En móvil, esto también queda pendiente hasta "Ver resultados"
+      // (aunque el resaltado del botón de categoría sí cambia al instante).
+      if (!isMobile()) applyFilters();
+    });
+  });
+
+  priceRange?.addEventListener("input", () => {
+    maxPrice = parseFloat(priceRange.value);
+    if (priceRangeValue) priceRangeValue.textContent = String(maxPrice);
+    if (!isMobile()) applyFilters();
+  });
+
+  // Si la página llegó con una categoría preseleccionada (ej. /categoria/alarma),
+  // se activa ese filtro desde el arranque, sin necesidad de que el usuario haga click.
+  const initialCategory = filtersEl?.getAttribute("data-initial-category") || "";
+  if (initialCategory) {
+    activeCategory = initialCategory;
+    filtersEl?.querySelectorAll("[data-filter-category]").forEach((b) => {
+      const isActive = b.getAttribute("data-filter-category") === initialCategory;
+      b.classList.toggle("text-[#ff5b00]", isActive);
+      b.classList.toggle("font-semibold", isActive);
+      b.classList.toggle("text-[#000000]", !isActive);
+    });
+  }
+
+  refreshVehicleSelects();
+  applyFilters();
+</script>

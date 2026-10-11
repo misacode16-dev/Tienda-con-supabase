@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Bloquear búsqueda interna y filtros (evita indexación de URLs con parámetros)
+Disallow: /buscar
+Disallow: /*?*
+
+# Sitemap
+Sitemap: https://autoboutiqueolga.com/sitemap-index.xml

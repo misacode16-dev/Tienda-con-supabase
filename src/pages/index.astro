@@ -1,11 +1,45 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import { getHomePageSchema } from '../utils/schemas.js';
+import products from '../data/products.json';
+import Carousel from '../Home/Carousel.astro';
+import PopularCategories from '../Home/PopularCategories.astro';
+import PopularProducts from '../Home/PopularProducts.astro';
+import Brands from '../Home/Brands.astro';
+import BestSellers from '../Home/BestSellers.astro';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const homeSchema = getHomePageSchema();
+
+// Se baraja UNA sola vez y se reparte: así ningún producto sale en las dos
+// secciones. Solo se consideran productos con stock.
+function shuffle(array) {
+  const copy = [...array];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+const shuffled = shuffle(products.filter((p) => p.stock));
+const popularProducts = shuffled.slice(0, 5);
+const bestSellerProducts = shuffled.slice(5, 15);
 ---
 
-<Layout>
-	<Welcome />
+<Layout
+  title="Autoboutique Olga - Accesorios y Repuestos para Autos en Perú"
+  description="Compra accesorios y repuestos para autos en Perú: alarmas, autoradios, parlantes, focos LED, cámaras de retroceso y más. Envíos a Lima y provincias."
+  url="https://autoboutiqueolga.com"
+  structuredData={homeSchema}
+>
+  <main>
+    <Carousel />
+    <PopularCategories />
+    <PopularProducts products={popularProducts} />
+    <Brands />
+    <BestSellers products={bestSellerProducts} />
+  </main>
 </Layout>
+
+
+

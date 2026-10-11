@@ -1,0 +1,67 @@
+---
+// components/ProductCard.astro
+import { ShoppingCart } from '@lucide/astro';
+import { getCoverImage } from '../utils/product-images.js';
+
+const { product, categoryName } = Astro.props;
+const { slug, name, price, oldPrice, stock } = product;
+const cover = getCoverImage(product);
+const hasVariants = Array.isArray(product.variants) && product.variants.length > 1;
+---
+
+<article
+  class="border border-[#eee] rounded-lg p-4 relative flex flex-col bg-[#fff] hover:shadow-[0_4px_18px_rgba(0,0,0,0.08)] transition-shadow"
+  data-product-card
+  data-category={product.category}
+  data-price={price}
+  data-filtros={JSON.stringify(product.filtros ?? [])}
+>
+  <a href={`/tienda/${slug}`} class="block">
+    <div class="w-full h-[170px] flex items-center justify-center mb-3">
+      <img src={cover} alt={name} loading="lazy" class="max-w-full max-h-full object-contain" />
+    </div>
+  </a>
+
+  {categoryName && (
+    <span class="text-[0.78rem] text-[#777] mb-1">{categoryName}</span>
+  )}
+
+  <a href={`/tienda/${slug}`} class="text-[0.92rem] font-bold text-[#111111] leading-[1.35] mb-2.5 h-[2.7em] overflow-hidden line-clamp-2 hover:text-[#ff5b00] transition-colors">
+    {name}
+  </a>
+
+  <div class="flex items-center gap-2 mb-1">
+    <span class="text-[1.05rem] font-bold text-[#000000]">S/ {price.toFixed(2)}</span>
+    {oldPrice && (
+      <span class="text-[#9c9c9c] line-through text-sm">S/ {oldPrice.toFixed(2)}</span>
+    )}
+  </div>
+
+  {!stock && (
+    <span class="text-[#ff5b00] text-xs font-semibold mb-1">Agotado</span>
+  )}
+
+  {hasVariants ? (
+    <a
+      href={`/tienda/${slug}`}
+      class="mt-auto pt-3 flex items-center justify-center gap-2 bg-[#111111] text-white text-sm font-semibold py-2 rounded-md hover:brightness-125 transition-all"
+    >
+      Ver opciones
+    </a>
+  ) : (
+    <button
+      type="button"
+      class="mt-auto pt-3 flex items-center justify-center gap-2 bg-[#ff5b00] text-white text-sm font-semibold py-2 rounded-md hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+      data-add-to-cart
+      data-slug={slug}
+      data-name={name}
+      data-price={price}
+      data-image={cover}
+      data-sku={product.sku ?? ''}
+      disabled={!stock}
+    >
+      <ShoppingCart class="icon-sm" />
+      Agregar
+    </button>
+  )}
+</article>

@@ -1,0 +1,186 @@
+---
+// pages/categoria/[slug].astro
+import Layout from '../../layouts/Layout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import Filters from '../../components/Filters.astro';
+import CartWidget from '../../components/CartWidget.astro';
+import products from '../../data/products.json';
+import categories from '../../data/categories.json';
+import { ChevronDown, Check } from '@lucide/astro';
+import { generateCategorySchemas } from '../../utils/schemas.js';
+
+// Genera una página estática por cada categoría en categories.json.
+// Agregar una categoría nueva al JSON = página nueva automática, sin tocar este archivo.
+export function getStaticPaths() {
+  return categories.map((category) => ({
+    params: { slug: category.slug },
+    props: { category },
+  }));
+}
+
+const { category } = Astro.props;
+
+const categoryProducts = products.filter((p) => p.category === category.slug);
+
+const sortOptions = [
+  { label: 'Orden predeterminado', value: 'default' },
+  { label: 'Precio: Menor a Mayor', value: 'price-asc' },
+  { label: 'Precio: Mayor a Menor', value: 'price-desc' },
+];
+
+const fullUrl = `https://autoboutiqueolga.com/categoria/${category.slug}`;
+const categorySchemas = generateCategorySchemas(category, categoryProducts);
+---
+
+<Layout
+  title={`${category.name} | [NOMBRE DEL NEGOCIO]`}
+  description={`Encuentra ${category.name} al mejor precio. [Descripción SEO de la categoría]`}
+  url={fullUrl}
+  structuredData={categorySchemas}
+>
+  <main>
+    <div class="w-full overflow-hidden">
+      <div class="max-w-[1400px] mx-auto px-5 mt-20 py-5">
+        <h1 class="text-[1.8rem] font-extrabold text-[#111111] mb-2.5 leading-[1.2]">{category.name}</h1>
+      </div>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto px-5 py-[30px] flex flex-col lg:flex-row gap-[30px]">
+      <Filters categories={categories} showCategoryFilter={false} />
+
+      <div class="flex-1">
+        <!-- TOOLBAR -->
+        <div class="flex justify-between items-center bg-[#f8f9fa] py-3 px-5 rounded-md mb-6 text-[0.88rem] text-[#555]">
+          <span id="products-count">Mostrando {categoryProducts.length} productos</span>
+
+          <div id="sort-dropdown" class="relative">
+            <button
+              id="sort-btn"
+              type="button"
+              class="flex items-center gap-2.5 bg-[#ffffff] border border-[#e0e0e0] py-2 px-3.5 rounded-md text-[0.88rem] text-[#555] cursor-pointer hover:border-[#bbb] hover:bg-[#fafafa] transition-all shadow-[0_2px_4px_rgba(0,0,0,0.03)]"
+            >
+              <strong id="selected-sort" class="text-[#111111] font-bold">Orden predeterminado</strong>
+              <ChevronDown id="sort-arrow" class="w-3 h-3 text-[#666] transition-transform duration-250" />
+            </button>
+
+            <ul id="sort-menu" class="absolute top-[calc(100%+6px)] right-0 min-w-[210px] bg-[#ffffff] border border-[#e2e8f0] rounded-lg shadow-[0_10px_25px_rgba(0,0,0,0.1)] list-none py-1.5 z-[100] hidden">
+              {sortOptions.map((opt, i) => (
+                <li
+                  class={`sort-option flex items-center justify-between py-2.5 px-4 text-[0.85rem] text-[#444] cursor-pointer hover:bg-[#f5f5f5] hover:text-[#111111] transition-colors ${i === 0 ? 'active font-bold text-[#ff5b00] bg-[#fff7f2]' : ''}`}
+                  data-value={opt.value}
+                  data-label={opt.label}
+                >
+                  <span>{opt.label}</span>
+                  <Check class={`check-icon w-3 h-3 text-[#ff5b00] ${i === 0 ? 'block' : 'hidden'}`} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <!-- GRID -->
+        <section id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+          {categoryProducts.map((product) => (
+            <ProductCard product={product} categoryName={category.name} />
+          ))}
+        </section>
+
+        <p id="products-empty" class="text-center text-[#9c9c9c] py-16" style={categoryProducts.length > 0 ? 'display:none' : ''}>
+          Todavía no hay productos en esta categoría.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <CartWidget />
+</Layout>
+
+<script>
+  // Dropdown de orden
+  const dropdown = document.getElementById('sort-dropdown');
+  const btn = document.getElementById('sort-btn');
+  const menu = document.getElementById('sort-menu');
+  const arrow = document.getElementById('sort-arrow');
+  const selectedSort = document.getElementById('selected-sort');
+  const grid = document.getElementById('products-grid');
+
+  // Orden "predeterminado" = el orden con el que cargó la página
+  const defaultOrder = grid ? Array.from(grid.querySelectorAll('[data-product-card]')) : [];
+
+  function toggleMenu() {
+    const isOpen = dropdown?.classList.toggle('open');
+    if (menu) menu.style.display = isOpen ? 'block' : 'none';
+    if (arrow) arrow.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+  }
+
+  function closeMenu() {
+    dropdown?.classList.remove('open');
+    if (menu) menu.style.display = 'none';
+    if (arrow) arrow.style.transform = 'rotate(0deg)';
+  }
+
+  btn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMenu();
+  });
+
+  function sortGrid(value) {
+    if (!grid) return;
+    let cards = Array.from(grid.querySelectorAll('[data-product-card]'));
+
+    const getPrice = (card) => parseFloat(card.getAttribute('data-price') || '0');
+
+    if (value === 'price-asc') {
+      cards.sort((a, b) => getPrice(a) - getPrice(b));
+    } else if (value === 'price-desc') {
+      cards.sort((a, b) => getPrice(b) - getPrice(a));
+    } else {
+      // 'default' -> vuelve al orden con el que cargó la página
+      cards = [...defaultOrder];
+    }
+
+    cards.forEach((card) => grid.appendChild(card));
+  }
+
+  menu?.querySelectorAll('.sort-option').forEach((option) => {
+    option.addEventListener('click', () => {
+      const label = option.getAttribute('data-label');
+      const value = option.getAttribute('data-value');
+      if (label && selectedSort) selectedSort.textContent = label;
+
+      menu.querySelectorAll('.sort-option').forEach((opt) => {
+        opt.classList.remove('active', 'font-bold', 'text-[#ff5b00]', 'bg-[#fff7f2]');
+        opt.querySelector('.check-icon')?.classList.add('hidden');
+      });
+
+      option.classList.add('active', 'font-bold', 'text-[#ff5b00]', 'bg-[#fff7f2]');
+      option.querySelector('.check-icon')?.classList.remove('hidden');
+
+      if (value) sortGrid(value);
+      closeMenu();
+    });
+  });
+
+  document.addEventListener('click', (e) => {
+    if (dropdown && !dropdown.contains(e.target)) closeMenu();
+  });
+
+  // Contador reactivo a los filtros de vehículo/precio (categoría ya viene fija por la URL)
+  const countEl = document.getElementById('products-count');
+  const emptyEl = document.getElementById('products-empty');
+
+  function updateCount() {
+    if (!grid) return;
+    const visible = Array.from(grid.querySelectorAll('[data-product-card]')).filter(
+      (card) => card.style.display !== 'none'
+    );
+    if (countEl) countEl.textContent = `Mostrando ${visible.length} productos`;
+    if (emptyEl) emptyEl.style.display = visible.length > 0 ? 'none' : '';
+  }
+
+  document.addEventListener('filters:changed', updateCount);
+</script>
+
+
+
+

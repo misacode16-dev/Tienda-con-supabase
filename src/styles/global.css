@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100dvh; padding: 0; margin: 0; }
+
+a { text-decoration: none; }
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  color: black;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+main { flex: 1; }
+
+/* Colores que se repiten 3+ veces en distintos componentes */
+.text-brand-dark { color: #111111; }
+.text-brand-orange { color: #ff0000; }
+.text-brand-gray { color: #888888; }
+.text-brand-medium { color: #666666; }
+.text-brand-light { color: #555555; }
+.bg-brand-black { background-color: #000000; }
+.bg-brand-red { background-color: #ff0000; }
+.bg-brand-white { background-color: #ffffff; }
+.bg-brand-soft { background-color: #f8f9fa; }
+.bg-brand-tag { background-color: #fff3eb; }
+.border-brand-light { border-color: #e5e5e5; }
+.border-brand-lighter { border-color: #e8e8e8; }
+.border-brand-gray { border-color: #e5e7eb; }

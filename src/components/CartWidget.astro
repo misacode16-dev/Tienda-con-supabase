@@ -1,0 +1,219 @@
+---
+// components/CartWidget.astro
+import { ShoppingCart, X } from '@lucide/astro';
+---
+
+<!-- Botón flotante -->
+<button
+  type="button"
+  id="cart-toggle"
+  aria-label="Abrir carrito"
+  class="fixed bottom-6 right-6 z-[200] bg-[#ff5100]  text-white rounded-full w-14 h-14 flex items-center justify-center hover:brightness-110 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.5)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.6)]"
+>
+  <ShoppingCart class="icon-md" />
+  <span
+    id="cart-count"
+    class="absolute -top-1 -right-1 bg-[#f97316] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center hidden"
+  >0</span>
+</button>
+
+<!-- Panel del carrito -->
+<div
+  id="cart-panel"
+  class="fixed top-0 right-0 h-full w-full sm:w-[380px] bg-white z-[201] shadow-2xl translate-x-full transition-transform duration-300 ease-in-out flex flex-col"
+>
+  <div class="flex items-center justify-between px-5 py-4 border-b border-[#e5e5e5]">
+    <h2 class="font-bold text-lg text-[#1f1f1f]">Tu pedido</h2>
+    <button type="button" id="cart-close" aria-label="Cerrar carrito">
+      <X class="icon-md" />
+    </button>
+  </div>
+
+  <div id="cart-items" class="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-4">
+    <p id="cart-empty" class="text-sm text-[#9c9c9c] text-center mt-10">Tu carrito está vacío</p>
+  </div>
+
+  <div class="border-t border-[#e5e5e5] px-5 py-4">
+    <div class="flex justify-between items-center mb-4">
+      <span class="font-semibold text-[#1f1f1f]">Total</span>
+      <span id="cart-total" class="font-bold text-xl text-[#ff5100]">S/ 0.00</span>
+    </div>
+    <a
+      id="cart-checkout"
+      href="#"
+      target="_blank"
+      rel="noopener"
+      class="block text-center bg-[#25D366] text-white font-bold py-3 rounded-md hover:brightness-110 transition-all"
+    >
+      Enviar pedido por WhatsApp
+    </a>
+  </div>
+</div>
+
+<!-- Overlay -->
+<div id="cart-overlay" class="fixed inset-0 bg-black/40 z-[199] hidden"></div>
+
+<script>
+  // Script tipo módulo (NO is:inline) → nos permite usar import real.
+  import { buildWhatsAppOrderLink } from '../utils/whatsapp.js';
+
+  const STORAGE_KEY = "cart_items";
+
+  const toggleBtn = document.getElementById("cart-toggle");
+  const closeBtn = document.getElementById("cart-close");
+  const panel = document.getElementById("cart-panel");
+  const overlay = document.getElementById("cart-overlay");
+  const cartItemsEl = document.getElementById("cart-items");
+  const cartEmptyEl = document.getElementById("cart-empty");
+  const cartCountEl = document.getElementById("cart-count");
+  const cartTotalEl = document.getElementById("cart-total");
+  const checkoutBtn = document.getElementById("cart-checkout");
+
+  function getCart() {
+    try {
+      // sessionStorage: persiste en recargas (F5) y al navegar entre páginas
+      // del sitio, pero se borra solo al cerrar la pestaña/navegador.
+      return JSON.parse(sessionStorage.getItem(STORAGE_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveCart(cart) {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+    render();
+  }
+
+  function addToCart(product, quantity = 1) {
+    const cart = getCart();
+    // cartId distingue variantes del mismo producto (ej. modelo BT-A20 vs
+    // BT-A21); si no hay variante, cartId es igual al slug.
+    const cartId = product.cartId || product.slug;
+    const existing = cart.find((item) => (item.cartId || item.slug) === cartId);
+    if (existing) {
+      existing.quantity += quantity;
+    } else {
+      cart.push({ ...product, cartId, quantity });
+    }
+    saveCart(cart);
+    openCart();
+  }
+
+  function updateQuantity(cartId, delta) {
+    const cart = getCart();
+    const item = cart.find((i) => (i.cartId || i.slug) === cartId);
+    if (!item) return;
+    item.quantity += delta;
+    const newCart = item.quantity <= 0 ? cart.filter((i) => (i.cartId || i.slug) !== cartId) : cart;
+    saveCart(newCart);
+  }
+
+  function removeItem(cartId) {
+    const cart = getCart().filter((i) => (i.cartId || i.slug) !== cartId);
+    saveCart(cart);
+  }
+
+  function render() {
+    const cart = getCart();
+    const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
+    const totalPrice = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
+    if (cartCountEl) {
+      cartCountEl.textContent = String(totalItems);
+      cartCountEl.classList.toggle("hidden", totalItems === 0);
+    }
+    if (cartTotalEl) cartTotalEl.textContent = `S/ ${totalPrice.toFixed(2)}`;
+    if (checkoutBtn) {
+      // Con el carrito vacío el botón queda desactivado (antes abría un chat sin mensaje)
+      const isEmpty = cart.length === 0;
+      checkoutBtn.setAttribute("href", isEmpty ? "#" : buildWhatsAppOrderLink(cart));
+      checkoutBtn.setAttribute("aria-disabled", String(isEmpty));
+      checkoutBtn.setAttribute("tabindex", isEmpty ? "-1" : "0");
+      checkoutBtn.classList.toggle("pointer-events-none", isEmpty);
+      checkoutBtn.classList.toggle("opacity-40", isEmpty);
+    }
+
+    if (!cartItemsEl) return;
+    cartItemsEl.innerHTML = "";
+
+    if (cart.length === 0) {
+      if (cartEmptyEl) cartItemsEl.appendChild(cartEmptyEl);
+      return;
+    }
+
+    cart.forEach((item) => {
+      const rowId = item.cartId || item.slug;
+      const row = document.createElement("div");
+      row.className = "flex gap-3 items-center";
+      row.innerHTML = `
+        <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded-md" />
+        <div class="flex-1">
+          <p class="text-sm font-semibold text-[#1f1f1f]">${item.name}</p>
+          <p class="text-sm text-[#ff5100] font-bold">S/ ${item.price.toFixed(2)}</p>
+          <div class="flex items-center gap-2 mt-1">
+            <button type="button" class="qty-decrease border border-[#e5e5e5] rounded w-6 h-6 flex items-center justify-center" data-cart-id="${rowId}">−</button>
+            <span class="text-sm">${item.quantity}</span>
+            <button type="button" class="qty-increase border border-[#e5e5e5] rounded w-6 h-6 flex items-center justify-center" data-cart-id="${rowId}">+</button>
+          </div>
+        </div>
+        <button type="button" class="remove-item text-[#ff5b00]" data-cart-id="${rowId}">✕</button>
+      `;
+      cartItemsEl.appendChild(row);
+    });
+
+    cartItemsEl.querySelectorAll(".qty-increase").forEach((btn) =>
+      btn.addEventListener("click", () => updateQuantity(btn.getAttribute("data-cart-id"), 1))
+    );
+    cartItemsEl.querySelectorAll(".qty-decrease").forEach((btn) =>
+      btn.addEventListener("click", () => updateQuantity(btn.getAttribute("data-cart-id"), -1))
+    );
+    cartItemsEl.querySelectorAll(".remove-item").forEach((btn) =>
+      btn.addEventListener("click", () => removeItem(btn.getAttribute("data-cart-id")))
+    );
+  }
+
+  function openCart() {
+    panel?.classList.remove("translate-x-full");
+    overlay?.classList.remove("hidden");
+  }
+
+  function closeCart() {
+    panel?.classList.add("translate-x-full");
+    overlay?.classList.add("hidden");
+  }
+
+  toggleBtn?.addEventListener("click", openCart);
+  closeBtn?.addEventListener("click", closeCart);
+  overlay?.addEventListener("click", closeCart);
+
+  // Escucha todos los botones "Agregar" de la página (catálogo y ficha de producto),
+  // incluso los que se agreguen dinámicamente después, delegando en document.
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-add-to-cart]");
+    if (!btn || btn.hasAttribute("disabled")) return;
+
+    // Si el botón indica un selector de cantidad relacionado (data-qty-input-id),
+    // se lee su valor actual. Si no existe, se agrega 1 unidad (comportamiento del catálogo).
+    let quantity = 1;
+    const qtyInputId = btn.getAttribute("data-qty-input-id");
+    if (qtyInputId) {
+      const qtyInput = document.getElementById(qtyInputId);
+      const parsed = parseInt(qtyInput?.value || "1", 10);
+      quantity = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+    }
+
+    addToCart(
+      {
+        slug: btn.dataset.slug,
+        cartId: btn.dataset.cartId || btn.dataset.slug,
+        name: btn.dataset.name,
+        price: parseFloat(btn.dataset.price),
+        image: btn.dataset.image,
+        sku: btn.dataset.sku || "",
+      },
+      quantity
+    );
+  });
+
+  render();
+</script>

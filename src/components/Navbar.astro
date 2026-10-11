@@ -1,0 +1,390 @@
+---
+import { Menu, X, Search, ChevronDown } from '@lucide/astro';
+import products from '../data/products.json';
+import categories from '../data/categories.json';
+import { getCoverImage } from '../utils/product-images.js';
+
+const navLinks = [
+  { href: '/tienda', label: 'Todas las categorías' }
+];
+
+// Antes esto era un array a mano con 10 categorías fijas — ahora se genera
+// solo desde categories.json, así que agregar/quitar categorías ahí
+// actualiza el navbar automáticamente, sin tocar este archivo.
+const categoryOptions = categories.map((cat) => ({
+  name: cat.name,
+  href: `/categoria/${cat.slug}`,
+}));
+
+// Índice liviano para el buscador en vivo: solo lo que se necesita para
+// mostrar el resultado (nombre, precio, slug, portada), no el producto completo.
+const searchIndex = products.map((p) => ({
+  slug: p.slug,
+  name: p.name,
+  price: p.price,
+  image: getCoverImage(p),
+}));
+---
+
+<header class="fixed top-0 left-0 right-0 z-[100] bg-[#000000]">
+  <nav id="inicio" class="max-w-7xl mx-auto h-[72px] px-5 md:px-8 flex justify-between items-center gap-4">
+
+    <!-- Logo -->
+      <!--<a href="/" class="text-[24px] md:text-[30px] font-black italic tracking-[1.5px] text-[#ffffff] uppercase flex-shrink-0">Titulo</a> -->
+
+      <a href="/"><img  src="/home/logo-navbar.webp" alt=""></a>
+      
+
+    <!-- Search Bar (Desktop) -->
+    <div class="hidden lg:flex items-center flex-1 max-w-[800px] mx-6 bg-[#ffffff] rounded h-[50px] relative">
+      <div class="relative h-full">
+        <button
+          id="category-dropdown-btn"
+          type="button"
+          class="h-full flex items-center gap-2 px-5 border-r border-[#e0e0e0] bg-[#ffffff] text-[14px] font-medium text-[#333] cursor-pointer hover:bg-[#f5f5f5] transition-colors">
+          <span class="flex items-center gap-2 pointer-events-none">
+            <Menu class="w-4 h-4" />
+            Categorías
+          </span>
+          <ChevronDown id="category-arrow" class="w-4 h-4 text-[#666] transition-transform duration-200 pointer-events-none" />
+        </button>
+
+        <!-- Dropdown Categorías -->
+        <div
+          id="category-dropdown-menu"
+          class="absolute top-[calc(100%+8px)] left-0 w-[240px] max-h-[70vh] overflow-y-auto bg-[#ffffff] border border-[#e2e8f0] rounded-lg shadow-[0_10px_25px_rgba(0,0,0,0.12)] py-2 z-[101] hidden">
+          {categoryOptions.map((cat) => (
+            <a
+              href={cat.href}
+              class="block px-4 py-2.5 text-[14px] text-[#333] hover:bg-[#f5f5f5] hover:text-[#ff5b00] transition-colors">
+              {cat.name}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <input
+        type="text"
+        id="search-input"
+        autocomplete="off"
+        placeholder="Buscar productos"
+        class="flex-1 h-full border-none px-4 text-[13px] text-[#555] outline-none bg-[#ffffff]" />
+
+      <button
+        type="button"
+        id="search-btn"
+        class="h-full w-12 bg-[#ff5b00] border-none text-[#ffffff] flex items-center justify-center cursor-pointer hover:bg-[#ff5e0057] transition-colors">
+        <Search class="w-5 h-5" />
+      </button>
+
+      <!-- Resultados de búsqueda (desktop) -->
+      <div
+        id="search-results"
+        class="absolute top-[calc(100%+8px)] left-0 w-full bg-[#ffffff] border border-[#e2e8f0] rounded-lg shadow-[0_10px_25px_rgba(0,0,0,0.12)] max-h-[420px] overflow-y-auto z-[101] hidden">
+      </div>
+    </div>
+
+    <!-- Menú escritorio -->
+    <div class="hidden lg:flex items-center gap-6 lg:gap-8 flex-shrink-0">
+      {navLinks.map((link) => (
+        <a class="text-[13px] font-semibold text-[#ffffff] hover:text-[#ff5b00] transition-colors" href={link.href}>{link.label}</a>
+      ))}
+    </div>
+
+    <!-- Botones móvil: buscar + menú -->
+    <div class="flex items-center gap-1 lg:hidden">
+      <button
+        id="mobile-search-btn"
+        type="button"
+        aria-label="Buscar productos"
+        aria-expanded="false"
+        aria-controls="mobile-search-panel"
+        class="text-[#ffffff] p-2">
+        <Search class="w-6 h-6" />
+      </button>
+
+      <button
+        id="menu-btn"
+        type="button"
+        aria-label="Abrir menú"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        class="text-[#ffffff] p-2">
+        <Menu id="icon-menu" class="w-6 h-6" />
+        <X id="icon-close" class="w-6 h-6 hidden" />
+      </button>
+    </div>
+  </nav>
+
+  <!-- Panel de búsqueda móvil -->
+  <div
+    id="mobile-search-panel"
+    class="fixed top-[72px] left-0 w-full bg-[#000000] lg:hidden z-[102] opacity-0 -translate-y-2 pointer-events-none transition-all duration-300 ease-in-out">
+    <div class="px-5 py-4">
+      <div class="flex items-center bg-[#ffffff] rounded h-[48px] overflow-hidden">
+        <input
+          type="text"
+          id="mobile-search-input"
+          autocomplete="off"
+          placeholder="Buscar productos"
+          class="flex-1 h-full border-none px-4 text-[14px] text-[#555] outline-none bg-[#ffffff]" />
+        <button type="button" id="mobile-search-close" class="h-full w-12 flex items-center justify-center text-[#555]">
+          <X class="w-5 h-5" />
+        </button>
+      </div>
+
+      <div id="mobile-search-results" class="mt-3 bg-[#ffffff] rounded-lg overflow-hidden max-h-[55vh] overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <!-- Menú móvil: links + categorías -->
+  <div
+    id="mobile-menu"
+    class="fixed top-[72px] left-0 w-full bg-[#000000] lg:hidden z-[99] opacity-0 -translate-y-2 pointer-events-none transition-all duration-300 ease-in-out max-h-[calc(100vh-72px)] overflow-y-auto">
+    <div class="flex flex-col px-5 py-6 space-y-5">
+      {navLinks.map((link) => (
+        <a class="text-[15px] font-semibold text-[#ffffff] hover:text-[#ff5b00] transition-colors" href={link.href}>{link.label}</a>
+      ))}
+      <!--
+      <a class="text-[15px] font-semibold bg-[#ff0000] text-[#ffffff] px-5 py-2.5 rounded text-center hover:bg-[#cc0000] transition-colors" href="#contacto">Contacto</a> -->
+
+      <!-- Categorías dentro del menú hamburguesa -->
+      <div class="pt-4 border-t border-[#333333]">
+        <p class="text-[13px] font-bold uppercase tracking-wide text-[#9c9c9c] mb-3">Categorías</p>
+        <div class="flex flex-col space-y-3">
+          {categoryOptions.map((cat) => (
+            <a href={cat.href} class="text-[14px] text-[#ffffff] hover:text-[#ff5b00] transition-colors">
+              {cat.name}
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Índice de productos para el buscador, embebido en build time -->
+<script type="application/json" id="search-data" set:html={JSON.stringify(searchIndex)} />
+
+<script is:inline>
+  document.addEventListener("DOMContentLoaded", function() {
+
+    const searchInput = document.getElementById("search-input");
+    const searchResults = document.getElementById("search-results");
+
+    function hideSearchResults() {
+      searchResults?.classList.add("hidden");
+    }
+
+    /* ========== MENÚ MÓVIL (hamburguesa: links + categorías) ========== */
+    const btn = document.getElementById("menu-btn");
+    const menu = document.getElementById("mobile-menu");
+    const iconMenu = document.getElementById("icon-menu");
+    const iconClose = document.getElementById("icon-close");
+
+    let isMenuOpen = false;
+
+    function updateMenu(open) {
+      if (!btn || !menu || !iconMenu || !iconClose) return;
+      isMenuOpen = open;
+      btn.setAttribute("aria-expanded", String(open));
+      btn.setAttribute("aria-label", open ? "Cerrar menú" : "Abrir menú");
+      menu.classList.toggle("opacity-0", !open);
+      menu.classList.toggle("-translate-y-2", !open);
+      menu.classList.toggle("pointer-events-none", !open);
+      menu.classList.toggle("opacity-100", open);
+      menu.classList.toggle("translate-y-0", open);
+      iconMenu.classList.toggle("hidden", open);
+      iconClose.classList.toggle("hidden", !open);
+      if (open) closeMobileSearch();
+    }
+
+    function closeMenu() { updateMenu(false); }
+
+    if (btn && menu && iconMenu && iconClose) {
+      btn.addEventListener("click", function() { updateMenu(!isMenuOpen); });
+
+      menu.querySelectorAll("a").forEach(function(link) {
+        link.addEventListener("click", closeMenu);
+      });
+
+      window.addEventListener("scroll", function() {
+        if (isMenuOpen) closeMenu();
+      }, { passive: true });
+
+      document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape" && isMenuOpen) { closeMenu(); }
+      });
+
+      document.addEventListener("click", function(e) {
+        if (isMenuOpen && !menu.contains(e.target) && !btn.contains(e.target)) {
+          closeMenu();
+        }
+      });
+    }
+
+    /* ========== DROPDOWN CATEGORÍAS (desktop) ========== */
+    const catBtn = document.getElementById("category-dropdown-btn");
+    const catMenu = document.getElementById("category-dropdown-menu");
+    const catArrow = document.getElementById("category-arrow");
+
+    if (catBtn && catMenu) {
+      let catOpen = false;
+
+      function openCatMenu() {
+        catOpen = true;
+        catMenu.classList.remove("hidden");
+        if (catArrow) catArrow.style.transform = "rotate(180deg)";
+        // Si había resultados de búsqueda abiertos, se cierran de inmediato
+        // (sin borrar lo escrito) para que no queden dos paneles superpuestos.
+        hideSearchResults();
+      }
+
+      function closeCatMenu() {
+        catOpen = false;
+        catMenu.classList.add("hidden");
+        if (catArrow) catArrow.style.transform = "rotate(0deg)";
+      }
+
+      catBtn.addEventListener("click", function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        if (catOpen) closeCatMenu(); else openCatMenu();
+      });
+
+      catMenu.querySelectorAll("a").forEach(function(link) {
+        link.addEventListener("click", closeCatMenu);
+      });
+
+      document.addEventListener("click", function(e) {
+        if (catOpen && !catMenu.contains(e.target) && !catBtn.contains(e.target)) {
+          closeCatMenu();
+        }
+      });
+
+      document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape" && catOpen) { closeCatMenu(); }
+      });
+
+      // Si el cliente vuelve a escribir en el buscador, el dropdown de
+      // categorías se cierra solo (mismo criterio, en la otra dirección).
+      searchInput?.addEventListener("input", () => {
+        if (catOpen) closeCatMenu();
+      });
+      searchInput?.addEventListener("focus", () => {
+        if (catOpen) closeCatMenu();
+      });
+    }
+
+    /* ========== PANEL DE BÚSQUEDA MÓVIL (abrir/cerrar) ========== */
+    const mobileSearchBtn = document.getElementById("mobile-search-btn");
+    const mobileSearchPanel = document.getElementById("mobile-search-panel");
+    const mobileSearchInput = document.getElementById("mobile-search-input");
+    const mobileSearchCloseBtn = document.getElementById("mobile-search-close");
+
+    let mobileSearchOpen = false;
+
+    function openMobileSearch() {
+      mobileSearchOpen = true;
+      mobileSearchBtn?.setAttribute("aria-expanded", "true");
+      mobileSearchPanel?.classList.remove("opacity-0", "-translate-y-2", "pointer-events-none");
+      mobileSearchPanel?.classList.add("opacity-100", "translate-y-0");
+      mobileSearchInput?.focus();
+    }
+
+    function closeMobileSearch() {
+      mobileSearchOpen = false;
+      mobileSearchBtn?.setAttribute("aria-expanded", "false");
+      mobileSearchPanel?.classList.add("opacity-0", "-translate-y-2", "pointer-events-none");
+      mobileSearchPanel?.classList.remove("opacity-100", "translate-y-0");
+    }
+
+    mobileSearchBtn?.addEventListener("click", function() {
+      if (mobileSearchOpen) {
+        closeMobileSearch();
+      } else {
+        if (isMenuOpen) closeMenu();
+        openMobileSearch();
+      }
+    });
+
+    mobileSearchCloseBtn?.addEventListener("click", closeMobileSearch);
+
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape" && mobileSearchOpen) closeMobileSearch();
+    });
+
+    /* ========== BUSCADOR EN VIVO (desktop + móvil comparten misma data) ========== */
+    const searchDataEl = document.getElementById("search-data");
+    const searchIndex = searchDataEl ? JSON.parse(searchDataEl.textContent || "[]") : [];
+
+    function renderResults(container, query) {
+      if (!container) return;
+
+      const trimmed = query.trim().toLowerCase();
+      if (trimmed.length === 0) {
+        container.innerHTML = "";
+        container.classList.add("hidden");
+        return;
+      }
+
+      const matches = searchIndex
+        .filter((p) => p.name.toLowerCase().includes(trimmed))
+        .slice(0, 6);
+
+      if (matches.length === 0) {
+        container.innerHTML = `<p class="text-sm text-[#9c9c9c] text-center py-6 px-4">No se encontraron productos para "${query}"</p>`;
+        container.classList.remove("hidden");
+        return;
+      }
+
+      container.innerHTML = matches
+        .map(
+          (p) => `
+            <a href="/tienda/${p.slug}" class="flex items-center gap-3 px-4 py-3 hover:bg-[#f5f5f5] transition-colors border-b border-[#f0f0f0] last:border-b-0">
+              <img src="${p.image}" alt="${p.name}" class="w-12 h-12 object-contain rounded-md bg-[#fafafa] flex-shrink-0" />
+              <div class="flex-1 min-w-0">
+                <p class="text-[13px] font-semibold text-[#1f1f1f] truncate">${p.name}</p>
+                <p class="text-[13px] font-bold text-[#ff5b00]">S/ ${p.price.toFixed(2)}</p>
+              </div>
+            </a>
+          `
+        )
+        .join("");
+      container.classList.remove("hidden");
+    }
+
+    function wireSearchInput(inputEl, resultsEl) {
+      if (!inputEl || !resultsEl) return;
+      let debounceTimer;
+
+      inputEl.addEventListener("input", () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => renderResults(resultsEl, inputEl.value), 150);
+      });
+
+      inputEl.addEventListener("focus", () => {
+        if (inputEl.value.trim().length > 0) renderResults(resultsEl, inputEl.value);
+      });
+    }
+
+    // Desktop
+    wireSearchInput(searchInput, searchResults);
+
+    document.getElementById("search-btn")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      searchInput?.focus();
+      if (searchInput) renderResults(searchResults, searchInput.value);
+    });
+
+    document.addEventListener("click", (e) => {
+      if (searchResults && searchInput && !searchResults.contains(e.target) && !searchInput.contains(e.target)) {
+        hideSearchResults();
+      }
+    });
+
+    // Móvil
+    wireSearchInput(mobileSearchInput, document.getElementById("mobile-search-results"));
+
+  });
+</script>

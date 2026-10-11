@@ -1,0 +1,21 @@
+---
+const brands = [
+  { name: '', image: '/home/marca 1.webp' },
+  { name: '', image: '/home/marca 2.webp' },
+  { name: '', image: '/home/marca 3.webp' },
+  { name: '', image: '/home/marca 4.webp' },
+  { name: '', image: '/home/marca 5.webp' },
+  { name: '', image: '/home/marca 6.webp' },
+];
+---
+
+<section class="max-w-[1200px] mx-auto my-10 px-5">
+  <h2 class="text-[1.5rem] font-bold text-[#000000] mb-5">Marcas que comercializamos</h2>
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px bg-brand-gray border border-brand-gray rounded overflow-hidden">
+    {brands.map((brand) => (
+      <div class="flex items-center justify-center p-5 h-[110px] bg-brand-white hover:bg-[#f9fafb] transition-colors">
+        <img src={brand.image} alt={brand.name} class="max-w-[80%] max-h-full object-contain transition-transform duration-200 hover:scale-105" />
+      </div>
+    ))}
+  </div>
+</section>
