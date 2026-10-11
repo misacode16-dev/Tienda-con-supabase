@@ -18,6 +18,7 @@
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
-    "@supabase/supabase-js": "^2.117.3"
+    "@supabase/supabase-js": "^2.117.3",
+    "wrangler": "^4.149.0"
   }
 }
