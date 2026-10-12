@@ -1,0 +1,23 @@
+<!-- PRODUCTS PAGE -->
+    <div class="page" id="page-products">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Productos</h1><p>Gestiona el catálogo de tu tienda</p></div>
+        <button class="btn btn-primary" onclick="openProductModal()">+ Agregar producto</button>
+      </div>
+      <div class="card">
+        <div class="filter-bar">
+          <div class="search-input-wrap"><input type="text" placeholder="Buscar por nombre o SKU..." oninput="applyProductFilters()" id="prod-search"></div>
+          <select class="filter-select" id="prod-cat" onchange="applyProductFilters()"></select>
+          <select class="filter-select" id="prod-stock" onchange="applyProductFilters()">
+            <option value="">Toda disponibilidad</option><option value="1">En stock</option><option value="0">Agotado</option>
+          </select>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Producto</th><th>SKU</th><th>Categoría</th><th>Precio</th><th>Variantes</th><th>Home</th><th>Disponibilidad</th><th>Acciones</th></tr></thead>
+          <tbody id="products-body"></tbody>
+        </table></div>
+        <div class="pagination"><span class="pagination-info" id="prod-count"></span></div>
+      </div>
+    </div>
+
+    

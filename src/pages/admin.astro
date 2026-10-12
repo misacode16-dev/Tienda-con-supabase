@@ -1,0 +1,35 @@
+---
+// /admin — panel de administración (acceso con Supabase Auth).
+import AdminLayout from '../layouts/AdminLayout.astro';
+import LoginScreen from '../components/admin/LoginScreen.astro';
+import Sidebar from '../components/admin/Sidebar.astro';
+import Topbar from '../components/admin/Topbar.astro';
+import DashboardPage from '../components/admin/DashboardPage.astro';
+import ProductsPage from '../components/admin/ProductsPage.astro';
+import CategoriesPage from '../components/admin/CategoriesPage.astro';
+import AnalyticsPage from '../components/admin/AnalyticsPage.astro';
+import ProductModal from '../components/admin/ProductModal.astro';
+import CategoryModal from '../components/admin/CategoryModal.astro';
+import Overlays from '../components/admin/Overlays.astro';
+---
+<AdminLayout title="Panel — Autoboutique Olga">
+  <LoginScreen />
+  <Sidebar />
+  <div id="main">
+    <Topbar />
+    <div id="content">
+      <DashboardPage />
+      <ProductsPage />
+      <CategoriesPage />
+      <AnalyticsPage />
+    </div>
+  </div>
+  <ProductModal />
+  <CategoryModal />
+  <Overlays />
+</AdminLayout>
+
+<script>
+  import '../scripts/admin/ui.js';
+  import '../scripts/admin/panel.js';
+</script>

@@ -1,0 +1,40 @@
+<!-- Product Modal -->
+<div class="modal-overlay" id="product-modal"><div class="modal modal-lg">
+  <div class="modal-header"><h2 id="pm-title">Agregar producto</h2><button class="modal-close icon-btn" onclick="closeModal('product-modal')" aria-label="Cerrar">✕</button></div>
+  <div class="modal-body">
+    <div class="form-section-title">Información general</div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Nombre del producto</label><input class="form-control" id="pm-name" placeholder="Nombre completo (H1, carrito y WhatsApp)"></div></div>
+    <div class="form-row form-row-2">
+      <div class="form-group"><label class="form-label">Título SEO <span id="seo-count" style="color:var(--text-3);font-weight:400"></span></label><input class="form-control" id="pm-seo" oninput="seoCount()" placeholder="Ej: Portaplacas Great Wall para Auto"></div>
+      <div class="form-group"><label class="form-label">Slug (URL)</label><input class="form-control" id="pm-slug" placeholder="portaplacas-great-wall-para-auto"></div>
+    </div>
+    <div class="form-row form-row-2">
+      <div class="form-group"><label class="form-label">Categoría</label><select class="form-control" id="pm-cat"></select></div>
+      <div class="form-group"><label class="form-label">Marca</label><input class="form-control" id="pm-brand" placeholder="Ej: Autorus"></div>
+    </div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Descripción corta (SEO)</label><textarea class="form-control" id="pm-short" placeholder="Máx. ~155 caracteres"></textarea></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Descripción detallada</label><textarea class="form-control" id="pm-details"></textarea></div></div>
+    <div class="form-row form-row-2">
+      <div class="form-group"><label class="form-label">Características (una por línea)</label><textarea class="form-control" id="pm-features"></textarea></div>
+      <div class="form-group"><label class="form-label">Especificaciones (Etiqueta: valor, una por línea)</label><textarea class="form-control" id="pm-specs"></textarea></div>
+    </div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Compatibilidad (Marca | Modelo, una por línea)</label><textarea class="form-control" id="pm-compat" placeholder="Autorus | BT-A20"></textarea></div></div>
+    <div class="form-section-title">Precio y disponibilidad</div>
+    <div class="form-row form-row-2">
+      <div class="form-group"><label class="form-label">Precio (S/)</label><input class="form-control" type="number" id="pm-price" placeholder="0.00"></div>
+      <div class="form-group"><label class="form-label">Precio anterior (tachado)</label><input class="form-control" type="number" id="pm-old" placeholder="0.00"></div>
+    </div>
+    <div class="form-row form-row-2">
+      <div class="form-group"><label class="form-label">SKU</label><input class="form-control" id="pm-sku"></div>
+      <div class="form-group"><label class="form-label">Disponibilidad</label><select class="form-control" id="pm-stock"><option value="1">En stock</option><option value="0">Agotado</option></select></div>
+    </div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Mostrar en el Home</label><select class="form-control" id="pm-home"><option value="">No mostrar</option><option value="popular">Productos populares</option><option value="best">Lo más vendido</option></select><div style="font-size:11px;color:var(--text-3);margin-top:4px">Un producto aparece en una sola sección, así nunca se repite.</div></div></div>
+    <div class="form-row form-row-2"><div class="form-group"><label class="form-label">Visibilidad</label><select class="form-control" id="pm-published"><option value="1">Publicado</option><option value="0">Borrador (no sale en la tienda)</option></select></div></div>
+    <div class="form-section-title">Variantes (opcional)</div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:10px">Una variante es una opción del mismo producto (ej. Q-125 y Q-150 de la alarma Quality). Si el producto no tiene opciones, déjalo vacío.</div>
+    <div id="variants-list"></div>
+    <button class="btn btn-secondary btn-sm" type="button" onclick="addVariantRow()">+ Agregar variante</button>
+    <div class="form-section-title">Fotos</div><div class="form-group"><label class="form-label">Una por línea: foto grande | miniatura</label><textarea class="form-control" id="pm-gallery" rows="5" placeholder="/portaplaca/great-wall/portaplacas.webp | /portaplaca/great-wall/portaplacas-mini.webp"></textarea><div style="font-size:11px;color:var(--text-3);margin-top:4px">Las fotos deben estar en la carpeta public de la tienda. La subida directa desde el panel viene después.</div></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('product-modal')">Cancelar</button><button class="btn btn-primary" onclick="saveProduct()">Guardar producto</button></div>
+</div></div>
