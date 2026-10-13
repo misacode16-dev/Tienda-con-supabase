@@ -52,9 +52,9 @@ window.publishSite = async () => {
   const { data: { session } } = await sb.auth.getSession();
   const res = await fetch('/api/publish', { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}` } }).catch(() => null);
   if (!res) return showToast('danger', 'Sin conexión');
-  if (res.status === 404) return showToast('warning', 'Publicar solo funciona en el sitio ya publicado, no en local.');
+if (res.status === 404 || res.status === 405) return showToast('warning', 'No se encontró /api/publish. En local es normal; si estás en Cloudflare, revisa que la carpeta functions esté en la raíz y se haya desplegado.');
   const j = await res.json().catch(() => ({}));
-  if (!res.ok) return showToast('danger', j.error || 'No se pudo publicar');
+if (!res.ok) return showToast('danger', j.error || `No se pudo publicar (código ${res.status})`);
   showToast('success', j.nothing ? 'No hay cambios nuevos para publicar.' : 'Publicación iniciada: en 1 a 3 minutos estará en la tienda.');
   const st = await sb.from('site_state').select('*').eq('id', 1).maybeSingle(); state = st.data; paintPublish();
 };
