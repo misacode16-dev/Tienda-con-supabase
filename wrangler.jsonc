@@ -9,5 +9,10 @@
     "binding": "ASSETS",
     // Solo /api/* pasa por el Worker; lo demás se sirve directo desde la tienda
     "run_worker_first": ["/api/*"]
-  }
+  },
+
+     "vars": {
+     "SUPABASE_URL": "https://pzdrlqaarggavhkhgxtn.supabase.co",
+     "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6ZHJscWFhcmdnYXZoa2hneHRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NjQ3OTYsImV4cCI6MjEwNzI0MDc5Nn0.r5yzjMnpD1ucDsON3KYHQZczQPD9cTY8sfQY5eoBX90"
+   }
 }
