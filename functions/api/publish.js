@@ -6,13 +6,13 @@
 // Variables en Cloudflare Pages: SUPABASE_URL, SUPABASE_ANON_KEY, DEPLOY_HOOK_URL (secreta)
 export async function onRequestPost({ request, env }) {
   const json = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json" } });
-  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY || !env.DEPLOY_HOOK_URL) return json({ error: "Faltan variables en Cloudflare (SUPABASE_URL, SUPABASE_ANON_KEY, DEPLOY_HOOK_URL)." }, 500);
+  if (!env.PUBLIC_SUPABASE_URL || !env.PUBLIC_SUPABASE_ANON_KEY || !env.DEPLOY_HOOK_URL) return json({ error: "Faltan variables en Cloudflare (SUPABASE_URL, SUPABASE_ANON_KEY, DEPLOY_HOOK_URL)." }, 500);
 
   const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!token) return json({ error: "No autorizado" }, 401);
 
-  const base = env.SUPABASE_URL.replace(/\/+$/, "");
-  const h = { apikey: env.SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` };
+  const base = env.PUBLIC_SUPABASE_URL.replace(/\/+$/, "");
+  const h = { apikey: env.PUBLIC_SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` };
 
   // ¿Es administrador? (las reglas RLS solo le muestran su fila a un admin)
   const adm = await fetch(`${base}/rest/v1/admin_users?select=user_id`, { headers: h });
