@@ -61,7 +61,7 @@ function applyProductFilters(){
 }
 function renderProducts(list){
   $('products-body').innerHTML=list.map(p=>`<tr>
-    <td><div class="product-cell"><div class="prod-thumb">📦</div><div><div class="fw-600">${p.name}</div>${p.seoTitle?`<div style="font-size:11px;color:var(--text-3)">SEO: ${p.seoTitle}</div>`:'<div style="font-size:11px;color:var(--warning)">Sin título SEO</div>'}</div></div></td>
+    <td><div class="product-cell">${p.img ? `<img class="prod-thumb" src="${p.img.replace(/"/g,'&quot;')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : '<div class="prod-thumb">📦</div>'}<div><div class="fw-600">${p.name}</div>${p.seoTitle?`<div style="font-size:11px;color:var(--text-3)">SEO: ${p.seoTitle}</div>`:'<div style="font-size:11px;color:var(--warning)">Sin título SEO</div>'}</div></div></td>
     <td class="td-mono">${p.sku||'—'}</td>
     <td style="color:var(--text-2)">${catName(p.category)}</td>
     <td class="fw-600">S/ ${p.price}${p.oldPrice?` <s style="color:var(--text-3);font-weight:400">S/ ${p.oldPrice}</s>`:''}</td>

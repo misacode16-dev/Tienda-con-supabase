@@ -20,6 +20,7 @@ async function enter() {
   const { data, error } = await sb.from('admin_users').select('user_id');
   if (error || !data?.length) { await sb.auth.signOut(); return showLogin('Tu usuario no tiene permiso de administrador.'); }
   $('login').style.display = 'none';
+  $('user-email').textContent = session.user.email;
   await loadAll();
 }
 window.doLogin = async () => {
@@ -38,7 +39,7 @@ async function loadAll() {
   ]);
   if (c.error || p.error) return fail(c.error || p.error, 'No se pudo cargar');
   DATA.categories = c.data.map((x) => ({ slug: x.slug, name: x.name, description: x.description }));
-  DATA.products = p.data.map((r) => ({ slug: r.slug, name: r.name, seoTitle: r.seo_title || '', category: r.category, price: +r.price, oldPrice: +r.old_price || 0, stock: r.in_stock, marca: r.brand || '', sku: r.sku || '', variants: r.product_variants.length, home: r.home_section || '', _r: r }));
+  DATA.products = p.data.map((r) => ({ slug: r.slug, name: r.name, seoTitle: r.seo_title || '', category: r.category, price: +r.price, oldPrice: +r.old_price || 0, stock: r.in_stock, marca: r.brand || '', sku: r.sku || '', variants: r.product_variants.length, home: r.home_section || '', home: r.home_section || '', img: r.gallery?.[0]?.thumb || r.gallery?.[0]?.full || '', _r: r }));
   state = st.data; fillCategorySelects(); renderPage(currentPage); paintPublish();
 }
 function paintPublish() {

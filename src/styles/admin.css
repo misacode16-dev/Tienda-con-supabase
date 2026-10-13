@@ -184,7 +184,7 @@ svg { flex-shrink: 0; }
   position: sticky;
   top: 0; z-index: 100;
 }
-.header-menu-btn { display: none; }
+.icon-btn.header-menu-btn { display: none; }
 .breadcrumb { font-size: 13px; color: var(--text-3); white-space: nowrap; }
 .breadcrumb span { color: var(--text-2); }
 .breadcrumb strong { color: var(--text); font-weight: 600; }
@@ -746,7 +746,7 @@ textarea.form-control { height: auto; padding: 10px 12px; resize: vertical; min-
   #sidebar { transform: translateX(-100%); }
   #sidebar.open { transform: translateX(0); }
   #main { margin-left: 0; }
-  .header-menu-btn { display: flex; }
+  .icon-btn.header-menu-btn { display: flex; }
   .settings-layout { grid-template-columns: 1fr; }
   .order-info-grid { grid-template-columns: 1fr; }
   #side-panel { width: 100%; max-width: 420px; }
@@ -834,7 +834,24 @@ textarea.form-control { height: auto; padding: 10px 12px; resize: vertical; min-
   .stats-grid{grid-template-columns:1fr}
   .header-actions .icon-btn[aria-label="Ayuda"]{display:none}
 }
-.login-wrap{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:var(--bg,#f4f5f7);padding:16px}
-.login-card{width:100%;max-width:380px;background:var(--surface,#fff);border:1px solid var(--border);border-radius:12px;padding:28px}
+.login-wrap{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--bg,#f4f5f7);padding:16px}
+.login-card{display:flex; flex-direction:column; width:100%;max-width:380px;background:var(--surface,#fff);border:1px solid var(--border);border-radius:12px;padding:28px}
 .login-card h1{font-size:20px;margin:0 0 4px}.login-card p{margin:0 0 20px;color:var(--text-3)}
 .login-error{color:var(--danger);font-size:13px;min-height:18px;margin-top:8px}
+
+/* La lupa solo se ve en celular (en escritorio está la barra de búsqueda) */
+.icon-btn.header-search-btn { display: none; }
+@media (max-width: 768px) {
+  .icon-btn.header-search-btn { display: flex; }
+}
+
+
+/* Foto del producto en la tabla */
+img.prod-thumb { object-fit: contain; background: #fff; padding: 2px; border: 1px solid var(--border); }
