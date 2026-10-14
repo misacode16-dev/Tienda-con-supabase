@@ -2,8 +2,8 @@
 // pages/tienda/[slug].astro
 import Layout from '../../layouts/Layout.astro';
 import CartWidget from '../../components/CartWidget.astro';
-import products from '../../data/products.json';
-import categories from '../../data/categories.json';
+import products from '../../data/products.js';
+import categories from '../../data/categories.js';
 import { ShoppingCart, MessageCircle, Store, Truck, MapPin, ShieldCheck } from '@lucide/astro';
 import { generateProductSchemas } from '../../utils/schemas.js';
 import { getCoverImage, getGalleryImages } from '../../utils/product-images.js';

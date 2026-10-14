@@ -4,8 +4,8 @@
 // Así las páginas no cambian: los visitantes nunca consultan Supabase.
 //
 // Variables necesarias (.env en local, y en Cloudflare Pages → Variables):
-//   SUPABASE_URL        https://TU-PROYECTO.supabase.co
-//   SUPABASE_ANON_KEY   clave PÚBLICA (publishable / anon). NUNCA la secreta.
+//   SUPABASE_URL        https://TU-PROYECTO.supabase.co   (también vale PUBLIC_SUPABASE_URL)
+//   SUPABASE_ANON_KEY   clave PÚBLICA (publishable / anon). NUNCA la secreta. (también vale PUBLIC_SUPABASE_ANON_KEY)
 
 const readEnv = (name) => process.env[name] ?? import.meta.env?.[name];
 const compact = (obj) => Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
@@ -89,10 +89,10 @@ async function fetchAll(supabase, table, select, orderBy) {
 }
 
 async function fetchCatalog() {
-  const url = String(readEnv("SUPABASE_URL") ?? "").trim().replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
-  const key = String(readEnv("SUPABASE_ANON_KEY") ?? "").trim();
+  const url = String(readEnv("SUPABASE_URL") ?? readEnv("PUBLIC_SUPABASE_URL") ?? "").trim().replace(/\/rest\/v1\/?$/, "").replace(/\/+$/, "");
+  const key = String(readEnv("SUPABASE_ANON_KEY") ?? readEnv("PUBLIC_SUPABASE_ANON_KEY") ?? "").trim();
   if (!url || !key) {
-    throw new Error("Faltan SUPABASE_URL y/o SUPABASE_ANON_KEY (en .env y en las variables de Cloudflare Pages).");
+    throw new Error("Faltan SUPABASE_URL y SUPABASE_ANON_KEY (o PUBLIC_SUPABASE_URL y PUBLIC_SUPABASE_ANON_KEY) en las variables de BUILD de Cloudflare y en el .env.");
   }
 
   const { createClient } = await import("@supabase/supabase-js");

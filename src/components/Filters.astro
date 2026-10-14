@@ -1,7 +1,7 @@
 ---
 // components/Filters.astro
 import { SlidersHorizontal, X, ChevronDown } from '@lucide/astro';
-import products from '../data/products.json';
+import products from '../data/products.js';
 
 // Tope del slider = precio más alto del catálogo, redondeado a la decena
 const priceCeiling = Math.ceil(Math.max(...products.map((p) => p.price)) / 10) * 10;
