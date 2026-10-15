@@ -29,6 +29,8 @@ const pageSchemas = Array.isArray(structuredData)
     : [];
 
 const allSchemas = [...globalSchemas, ...pageSchemas];
+
+const CF_TOKEN = import.meta.env.PUBLIC_CF_ANALYTICS_TOKEN;
 ---
 <!doctype html>
 <html lang="es-PE" prefix="og: https://ogp.me/ns# product: https://ogp.me/ns/product#">
@@ -53,6 +55,15 @@ const allSchemas = [...globalSchemas, ...pageSchemas];
       priceCurrency={priceCurrency}
       availability={availability}
     />
+
+    {CF_TOKEN && (
+  <script
+    is:inline
+    defer
+    src="https://static.cloudflareinsights.com/beacon.min.js"
+    data-cf-beacon={JSON.stringify({ token: CF_TOKEN })}
+  ></script>
+)}
   </head>
   <body>
     <Navbar />
