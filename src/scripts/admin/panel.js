@@ -2,6 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { $, DATA, currentPage, showToast, closeModal, closeConfirm, seoCount, fillCategorySelects, renderPage, countIn, actionBtns } from './ui.js';
 const sb = createClient(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
+window.getAccessToken = async () => (await sb.auth.getSession()).data.session?.access_token;
 const esc = (v) => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 const slugify = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
 const val = (id) => document.getElementById(id).value.trim();

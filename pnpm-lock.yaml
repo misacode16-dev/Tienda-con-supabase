@@ -17,6 +17,9 @@ importers:
       astro:
         specifier: ^7.3.8
         version: 7.3.8(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
+      chart.js:
+        specifier: ^4.5.1
+        version: 4.5.1
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
@@ -571,6 +574,9 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
+  '@kurkle/color@0.3.4':
+    resolution: {integrity: sha512-M5UknZPHRu3DEDWoipU6sE8PdkZ6Z/S+v4dD+Ke8IaNlpdSQah50lz1KtcFBa2vsdOnwbbnxJwVM4wty6udA5w==}
+
   '@lucide/astro@1.55.0':
     resolution: {integrity: sha512-PjTTgicKDheri7BQaO5lGO47TPwQZBE6xSs5LnwXHcXvXn+6PF1SJU/7RqPbgaXTkTq7aGwyx5YBFGiWE8HbbQ==}
     peerDependencies:
@@ -918,6 +924,10 @@ packages:
 
   character-entities-legacy@3.0.0:
     resolution: {integrity: sha512-RpPp0asT/6ufRm//AJVwpViZbGM/MkjQFxJccQRHmISF/22NBtsHqAWmL+/pmkPWoIUJdWyeVleTl1wydHATVQ==}
+
+  chart.js@4.5.1:
+    resolution: {integrity: sha512-GIjfiT9dbmHRiYi6Nl2yFCq7kkwdkp1W/lp2J99rX0yo9tgJGn3lKQATztIjb5tVtevcBtIdICNWqlq5+E8/Pw==}
+    engines: {pnpm: '>=8'}
 
   chokidar@5.0.0:
     resolution: {integrity: sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==}
@@ -2147,6 +2157,8 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
+  '@kurkle/color@0.3.4': {}
+
   '@lucide/astro@1.55.0(astro@7.3.8(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))':
     dependencies:
       astro: 7.3.8(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
@@ -2512,6 +2524,10 @@ snapshots:
   character-entities-html4@2.1.0: {}
 
   character-entities-legacy@3.0.0: {}
+
+  chart.js@4.5.1:
+    dependencies:
+      '@kurkle/color': 0.3.4
 
   chokidar@5.0.0:
     dependencies:

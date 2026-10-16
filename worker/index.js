@@ -62,11 +62,15 @@ async function analytics(request, env) {
 
   const dates = Array.from({ length: days }, (_, i) => new Date(Date.now() - i * 86400000).toISOString().slice(0, 10));
   const f = `{ date_in: ${JSON.stringify(dates)}, siteTag: "${site}" }`;
-  const grp = (alias, dim) => `${alias}: rumPageloadEventsAdaptiveGroups(filter: ${f}, limit: 1000) { count sum { visits } dimensions { ${dim} } }`;
+  // el doble de días: el periodo actual + el anterior (para calcular el % de cambio)
+  const dates2 = Array.from({ length: days * 2 }, (_, i) => new Date(Date.now() - i * 86400000).toISOString().slice(0, 10));
+  const f2 = `{ date_in: ${JSON.stringify(dates2)}, siteTag: "${site}" }`;
+  const grp = (alias, dim, flt = f) => `${alias}: rumPageloadEventsAdaptiveGroups(filter: ${flt}, limit: 1000) { count sum { visits } dimensions { ${dim} } }`;
   const query = `{ viewer { accounts(filter: { accountTag: "${acc}" }) {
     total: rumPageloadEventsAdaptiveGroups(filter: ${f}, limit: 1) { count sum { visits } }
     ${grp("paths", "requestPath")}
     ${grp("referers", "refererHost")}
+    ${grp("daily", "date", f2)}
   } } }`;
 
   const r = await fetch("https://api.cloudflare.com/client/v4/graphql", {
@@ -85,6 +89,7 @@ async function analytics(request, env) {
     views: acct.total?.[0]?.count ?? 0,
     paths: rows(acct.paths, "requestPath"),
     referers: rows(acct.referers, "refererHost"),
+    daily: rows(acct.daily, "date").map((x) => ({ date: x.name, visits: x.visits, views: x.views })),
   });
 }
 

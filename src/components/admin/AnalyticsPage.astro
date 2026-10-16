@@ -1,4 +1,4 @@
-<!-- ANALYTICS PAGE (Cloudflare Web Analytics) -->
+<!-- ANALYTICS PAGE (Cloudflare Web Analytics + Chart.js) -->
     <div class="page" id="page-analytics">
       <div class="page-header">
         <div class="page-header-left"><h1>Analítica</h1><p>Visitas, productos más vistos y canales de origen</p></div>
@@ -8,12 +8,22 @@
         </select>
       </div>
       <div id="an-status" style="color:var(--text-3);font-size:13px;margin-bottom:12px"></div>
-      <div class="stats-grid" style="margin-bottom:20px">
-        <div class="stat-card"><div class="value" id="an-visits">—</div><div class="label">Visitas a la tienda</div></div>
-        <div class="stat-card"><div class="value" id="an-views">—</div><div class="label">Páginas vistas</div></div>
+      <div class="kpi-grid" id="an-kpis"></div>
+      <div class="dash-grid" style="margin-bottom:24px">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-left"><h3>Tráfico por día</h3><p id="an-range"></p></div>
+            <div style="display:flex;gap:6px">
+              <button id="an-tab-visits" class="btn btn-primary btn-sm" onclick="anTab('visits')">Visitas</button>
+              <button id="an-tab-views" class="btn btn-secondary btn-sm" onclick="anTab('views')">Páginas vistas</button>
+            </div>
+          </div>
+          <div class="card-body"><div style="position:relative;height:260px"><canvas id="an-main"></canvas></div></div>
+        </div>
+        <div class="card"><div class="card-header"><div class="card-header-left"><h3>Productos más vistos</h3><p>Los que generan más interés</p></div></div><div class="card-body" id="an-products"></div></div>
       </div>
       <div class="dash-grid">
-        <div class="card"><div class="card-header"><div class="card-header-left"><h3>Productos más vistos</h3><p>Los que generan más interés</p></div></div><div class="card-body" id="an-products"></div></div>
+        <div class="card"><div class="card-header"><div class="card-header-left"><h3>Vistas por categoría</h3><p>Fichas de producto y páginas de categoría</p></div></div><div class="card-body" id="an-categories"></div></div>
         <div class="card"><div class="card-header"><div class="card-header-left"><h3>Canales de origen</h3><p>De dónde llegan tus visitas</p></div></div><div class="card-body" id="an-channels"></div></div>
       </div>
     </div>
