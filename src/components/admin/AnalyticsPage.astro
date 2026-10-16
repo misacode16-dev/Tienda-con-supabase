@@ -1,10 +1,19 @@
-<!-- ANALYTICS PAGE (pendiente: Google Analytics) -->
+<!-- ANALYTICS PAGE (Cloudflare Web Analytics) -->
     <div class="page" id="page-analytics">
-      <div class="page-header"><div class="page-header-left"><h1>Analítica</h1><p>Visitas, productos vistos y canales de origen</p></div></div>
-      <div class="stats-grid" style="margin-bottom:20px">
-        <div class="stat-card"><div class="value">—</div><div class="label">Visitas a la tienda</div></div>
-        <div class="stat-card"><div class="value">—</div><div class="label">Productos más vistos</div></div>
-        <div class="stat-card"><div class="value">—</div><div class="label">Canales (Google, Instagram, TikTok…)</div></div>
+      <div class="page-header">
+        <div class="page-header-left"><h1>Analítica</h1><p>Visitas, productos más vistos y canales de origen</p></div>
+        <select class="filter-select" id="an-days" onchange="loadAnalytics(true)">
+          <option value="7">Últimos 7 días</option>
+          <option value="30">Últimos 30 días</option>
+        </select>
       </div>
-      <div class="card"><div class="card-body" style="text-align:center;padding:48px 20px;color:var(--text-3)">Google Analytics aún no está conectado. Aquí se mostrarán los datos cuando lo activemos.</div></div>
+      <div id="an-status" style="color:var(--text-3);font-size:13px;margin-bottom:12px"></div>
+      <div class="stats-grid" style="margin-bottom:20px">
+        <div class="stat-card"><div class="value" id="an-visits">—</div><div class="label">Visitas a la tienda</div></div>
+        <div class="stat-card"><div class="value" id="an-views">—</div><div class="label">Páginas vistas</div></div>
+      </div>
+      <div class="dash-grid">
+        <div class="card"><div class="card-header"><div class="card-header-left"><h3>Productos más vistos</h3><p>Los que generan más interés</p></div></div><div class="card-body" id="an-products"></div></div>
+        <div class="card"><div class="card-header"><div class="card-header-left"><h3>Canales de origen</h3><p>De dónde llegan tus visitas</p></div></div><div class="card-body" id="an-channels"></div></div>
+      </div>
     </div>

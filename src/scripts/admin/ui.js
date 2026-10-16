@@ -23,6 +23,7 @@ export function renderPage(page){
   if(page==='dashboard'){renderKPIs();renderCatBars();renderOutOfStock();}
   if(page==='products') applyProductFilters();
   if(page==='categories') window.renderCategories?.();
+  if(page==='analytics') window.loadAnalytics?.();
 }
 
 // ===== DASHBOARD =====

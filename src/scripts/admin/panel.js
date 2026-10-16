@@ -141,4 +141,37 @@ window.doDelete = async () => {
   showToast('success', 'Eliminado'); await loadAll();
 };
 
+// ---------- analítica (Cloudflare Web Analytics) ----------
+const CHANNELS = [['Google', /google\./], ['Instagram', /instagram/], ['TikTok', /tiktok/], ['Facebook', /facebook|fb\.com|fb\.me/], ['WhatsApp', /whatsapp|wa\.me/], ['YouTube', /youtube|youtu\.be/]];
+const channelOf = (h) => (!h || h.includes('autoboutiqueolga.com') || h.includes('workers.dev') ? 'Directo o sin origen' : (CHANNELS.find(([, re]) => re.test(h))?.[0] || h));
+const anRow = (name, n) => `<div style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--border-light);font-size:13px"><span>${esc(name)}</span><strong>${n.toLocaleString('es-PE')}</strong></div>`;
+const anEmpty = '<div style="color:var(--text-3);font-size:13px">Aún no hay datos.</div>';
+let anCache = { at: 0, days: 0 };
+
+window.loadAnalytics = async (force) => {
+  const days = Number($('an-days').value) || 7;
+  if (force !== true && anCache.days === days && Date.now() - anCache.at < 60000) return;
+  $('an-status').textContent = 'Cargando…';
+  const { data: { session } } = await sb.auth.getSession();
+  const res = await fetch('/api/analytics', { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}`, 'content-type': 'application/json' }, body: JSON.stringify({ days }) }).catch(() => null);
+  if (!res) { $('an-status').textContent = 'Sin conexión.'; return; }
+  if (res.status === 404) { $('an-status').textContent = 'Las estadísticas solo funcionan en el sitio ya publicado, no en local.'; return; }
+  const j = await res.json().catch(() => ({}));
+  if (!res.ok) { $('an-status').textContent = j.error || `No se pudo cargar (código ${res.status})`; return; }
+  anCache = { at: Date.now(), days }; $('an-status').textContent = '';
+  $('an-visits').textContent = j.visits.toLocaleString('es-PE'); $('an-views').textContent = j.views.toLocaleString('es-PE');
+
+  // productos más vistos: las páginas /tienda/<slug>, con el nombre del producto
+  const names = new Map(DATA.products.map((p) => [p.slug, p.name])); const prod = new Map();
+  for (const r of j.paths) { const m = r.name.match(/^\/tienda\/([^/?#]+)\/?$/); if (m) { const s = decodeURIComponent(m[1]); prod.set(s, (prod.get(s) || 0) + r.views); } }
+  const topP = [...prod].sort((a, b) => b[1] - a[1]).slice(0, 10);
+  $('an-products').innerHTML = topP.length ? topP.map(([s, v]) => anRow(names.get(s) || s, v)).join('') : anEmpty;
+
+  // canales: Google, Instagram, TikTok, etc.
+  const ch = new Map(); for (const r of j.referers) { const k = channelOf(r.name); ch.set(k, (ch.get(k) || 0) + r.visits); }
+  const topC = [...ch].sort((a, b) => b[1] - a[1]).slice(0, 10);
+  $('an-channels').innerHTML = topC.length ? topC.map(([k, v]) => anRow(k, v)).join('') : anEmpty;
+};
+
+
 enter();
