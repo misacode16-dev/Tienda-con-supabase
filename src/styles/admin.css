@@ -855,3 +855,5 @@ textarea.form-control { height: auto; padding: 10px 12px; resize: vertical; min-
 
 /* Foto del producto en la tabla */
 img.prod-thumb { object-fit: contain; background: #fff; padding: 2px; border: 1px solid var(--border); }
+
+#kpi-grid { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }

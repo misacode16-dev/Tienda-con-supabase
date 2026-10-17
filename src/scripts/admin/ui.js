@@ -20,7 +20,7 @@ function navigate(page, btn) {
   closeSidebar(); renderPage(page);
 }
 export function renderPage(page){
-  if(page==='dashboard'){renderKPIs();renderCatBars();renderOutOfStock();}
+  if(page==='dashboard'){renderKPIs();window.renderCatChart?.();}
   if(page==='products') applyProductFilters();
   if(page==='categories') window.renderCategories?.();
   if(page==='analytics') window.loadAnalytics?.();
@@ -31,7 +31,6 @@ function renderKPIs(){
   const out=DATA.products.filter(p=>!p.stock).length;
   const k=[
     {l:'Productos',v:DATA.products.length,i:'📦',bg:'var(--primary-light)'},
-    {l:'Disponibles',v:DATA.products.length-out,i:'✅',bg:'var(--success-light)'},
     {l:'Agotados',v:out,i:'⚠️',bg:'var(--warning-light)'},
     {l:'Categorías',v:DATA.categories.length,i:'🗂',bg:'var(--info-light)'},
   ];
