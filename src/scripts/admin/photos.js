@@ -1,5 +1,6 @@
 // src/scripts/admin/photos.js — subir fotos desde el panel (se convierten a WebP en el navegador y van a Cloudflare R2)
-// Se activa solo: añade el botón "Subir fotos" y la vista previa sobre cada caja de fotos (producto y variantes).
+// Se activa solo: sobre cada caja de fotos (producto y variantes) pone una zona para arrastrar, la vista previa
+// y deja las rutas escritas a mano escondidas detrás de "Editar rutas manualmente".
 const MAX_FULL = 1200, MAX_THUMB = 400;
 let picker = null;
 
@@ -14,9 +15,15 @@ async function toWebp(bitmap, max, quality) {
 }
 
 function render(tools, ta) {
-  const strip = tools.querySelector('.photo-strip'); strip.innerHTML = '';
+  const strip = tools.querySelector('.photo-strip'), all = lines(ta), n = all.length;
+  const drop = tools.querySelector('.photo-drop');
+  drop.style.padding = n ? '10px' : '22px';
+  drop.querySelector('.drop-title').textContent = n ? 'Arrastra más fotos aquí o haz clic para elegirlas' : 'Arrastra tus fotos aquí o haz clic para elegirlas';
+  drop.querySelector('.drop-sub').style.display = n ? 'none' : 'block';
+
+  strip.innerHTML = '';
   const mini = (txt, title, css, fn) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = txt; b.title = title; b.style.cssText = `position:absolute;border:0;cursor:pointer;background:rgba(0,0,0,.65);color:#fff;border-radius:6px;font-size:11px;line-height:1;padding:3px 5px;${css}`; b.onclick = fn; return b; };
-  lines(ta).forEach((l, i, all) => {
+  all.forEach((l, i) => {
     const [full, thumb] = l.split('|').map((s) => s.trim());
     const cell = document.createElement('div'); cell.style.cssText = 'position:relative;width:84px;height:84px;border:1px solid var(--border);border-radius:8px;background:#fff;overflow:hidden';
     const img = document.createElement('img'); img.src = thumb || full; img.alt = ''; img.style.cssText = 'width:100%;height:100%;object-fit:contain'; img.onerror = () => { img.style.visibility = 'hidden'; };
@@ -28,9 +35,14 @@ function render(tools, ta) {
 }
 
 async function handleFiles(files, tools, ta) {
-  const status = tools.querySelector('.photo-status'), slug = (document.getElementById('pm-slug')?.value || '').trim();
-  const token = await window.getAccessToken?.(); if (!token) return;
+  const status = tools.querySelector('.photo-status');
+  files = files.filter((f) => f.type.startsWith('image/'));
+  if (!files.length) { status.textContent = 'Solo se aceptan imágenes (JPG, PNG, WebP…).'; return; }
+  if (tools.dataset.busy) return; tools.dataset.busy = '1';
+  const slug = (document.getElementById('pm-slug')?.value || '').trim();
+  const token = await window.getAccessToken?.();
   const added = []; let error = '';
+  if (!token) error = 'tu sesión venció, vuelve a entrar';
   for (let i = 0; i < files.length && !error; i++) {
     status.textContent = `Subiendo ${i + 1} de ${files.length}…`;
     try {
@@ -48,6 +60,7 @@ async function handleFiles(files, tools, ta) {
   }
   if (added.length) setLines(ta, [...lines(ta), ...added]);
   status.textContent = error ? `✖ ${error}` : `✔ ${added.length} foto(s) subida(s). Pulsa "Guardar producto" para conservarlas.`;
+  delete tools.dataset.busy;
 }
 
 function pick(tools, ta) {
@@ -57,14 +70,43 @@ function pick(tools, ta) {
 
 function enhance(ta) {
   if (ta.photoTools) return;
-  const tools = document.createElement('div'); tools.style.marginBottom = '8px';
-  tools.innerHTML = '<div class="photo-strip" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px"></div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><button type="button" class="btn btn-secondary btn-sm">📷 Subir fotos</button><span class="photo-status" style="font-size:12px;color:var(--text-3)"></span></div>';
-  ta.parentNode.insertBefore(tools, ta); ta.photoTools = tools;
-  tools.querySelector('button').addEventListener('click', () => pick(tools, ta));
+  const parent = ta.parentNode;
+  const label = ta.previousElementSibling?.tagName === 'LABEL' ? ta.previousElementSibling : null;
+  const hint = ta.nextElementSibling?.tagName === 'DIV' ? ta.nextElementSibling : null;
+
+  const tools = document.createElement('div'); tools.style.marginBottom = '4px';
+  tools.innerHTML = `
+    <div class="photo-drop" tabindex="0" role="button" style="border:2px dashed var(--border);border-radius:10px;padding:22px;text-align:center;cursor:pointer;color:var(--text-3);font-size:13px;transition:border-color .15s,background .15s">
+      <div style="font-size:22px;line-height:1.2">📷</div>
+      <div class="drop-title" style="color:var(--text-2);font-weight:600;margin-top:2px"></div>
+      <div class="drop-sub" style="font-size:11px;margin-top:4px">JPG, PNG o WebP · se optimizan solas · la primera foto es la portada</div>
+    </div>
+    <div class="photo-strip" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
+    <div class="photo-status" style="font-size:12px;color:var(--text-3);margin-top:6px;min-height:16px"></div>
+    <button type="button" class="photo-manual-toggle" style="background:none;border:0;padding:0;color:var(--primary);cursor:pointer;font-size:12px">Editar rutas manualmente</button>`;
+
+  // las rutas escritas a mano quedan escondidas (siguen siendo lo que se guarda)
+  const manual = document.createElement('div'); manual.style.cssText = 'display:none;margin-top:8px';
+  if (label) { label.textContent = 'Rutas (una por línea: foto grande | miniatura)'; manual.appendChild(label); }
+  manual.appendChild(ta);
+  if (hint) { hint.textContent = 'Para fotos que ya están en la carpeta public de la tienda, escribe su ruta aquí.'; manual.appendChild(hint); }
+  parent.append(tools, manual); ta.photoTools = tools;
+
+  const drop = tools.querySelector('.photo-drop'), toggle = tools.querySelector('.photo-manual-toggle');
+  const mark = (on) => { drop.style.borderColor = on ? 'var(--primary)' : 'var(--border)'; drop.style.background = on ? 'rgba(59,130,246,.08)' : 'transparent'; };
+  drop.addEventListener('click', () => pick(tools, ta));
+  drop.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(tools, ta); } });
+  ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); mark(true); }));
+  ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); mark(false); }));
+  drop.addEventListener('drop', (e) => handleFiles([...(e.dataTransfer?.files || [])], tools, ta));
+  toggle.addEventListener('click', () => { const open = manual.style.display === 'none'; manual.style.display = open ? 'block' : 'none'; toggle.textContent = open ? 'Ocultar rutas' : 'Editar rutas manualmente'; });
   ta.addEventListener('input', () => render(tools, ta));
 }
 
 function refreshAll() { document.querySelectorAll('#pm-gallery, [data-f="gallery"]').forEach((ta) => { enhance(ta); render(ta.photoTools, ta); }); }
+
+// si sueltas una foto fuera de la zona, el navegador no la abre (y no te saca del panel)
+['dragover', 'drop'].forEach((ev) => window.addEventListener(ev, (e) => { if (e.dataTransfer?.types?.includes('Files')) e.preventDefault(); }));
 
 // panel.js ya cargó: se envuelven sus funciones para activar las herramientas al abrir el formulario o añadir variantes
 ['openProductModal', 'addVariantRow'].forEach((name) => { const f = window[name]; if (typeof f === 'function') window[name] = (...a) => { const r = f(...a); refreshAll(); return r; }; });
