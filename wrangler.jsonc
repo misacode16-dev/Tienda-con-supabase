@@ -14,5 +14,16 @@
      "vars": {
      "SUPABASE_URL": "https://pzdrlqaarggavhkhgxtn.supabase.co",
      "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6ZHJscWFhcmdnYXZoa2hneHRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NjQ3OTYsImV4cCI6MjEwNzI0MDc5Nn0.r5yzjMnpD1ucDsON3KYHQZczQPD9cTY8sfQY5eoBX90"
+   },
+
+
+
+      "r2_buckets": [
+     { "binding": "IMAGES", "bucket_name": "tienda-imagenes" }
+   ],
+   "vars": {
+     "SUPABASE_URL": "https://pzdrlqaarggavhkhgxtn.supabase.co",
+     "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6ZHJscWFhcmdnYXZoa2hneHRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2NjQ3OTYsImV4cCI6MjEwNzI0MDc5Nn0.r5yzjMnpD1ucDsON3KYHQZczQPD9cTY8sfQY5eoBX90",
+     "R2_PUBLIC_URL": "https://pub-6e72e531116a46e39a96be812871c1d7.r2.dev"
    }
 }
