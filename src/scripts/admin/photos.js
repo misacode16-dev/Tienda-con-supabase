@@ -71,8 +71,10 @@ function pick(tools, ta) {
 function enhance(ta) {
   if (ta.photoTools) return;
   const parent = ta.parentNode;
+  // Ocultar la caja de texto, la etiqueta y el hint — ya no hacen falta
   const label = ta.previousElementSibling?.tagName === 'LABEL' ? ta.previousElementSibling : null;
   const hint = ta.nextElementSibling?.tagName === 'DIV' ? ta.nextElementSibling : null;
+  [label, ta, hint].forEach((el) => { if (el) el.style.display = 'none'; });
 
   const tools = document.createElement('div'); tools.style.marginBottom = '4px';
   tools.innerHTML = `
@@ -82,24 +84,17 @@ function enhance(ta) {
       <div class="drop-sub" style="font-size:11px;margin-top:4px">JPG, PNG o WebP · se optimizan solas · la primera foto es la portada</div>
     </div>
     <div class="photo-strip" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
-    <div class="photo-status" style="font-size:12px;color:var(--text-3);margin-top:6px;min-height:16px"></div>
-    <button type="button" class="photo-manual-toggle" style="background:none;border:0;padding:0;color:var(--primary);cursor:pointer;font-size:12px">Editar rutas manualmente</button>`;
+    <div class="photo-status" style="font-size:12px;color:var(--text-3);margin-top:6px;min-height:16px"></div>`;
 
-  // las rutas escritas a mano quedan escondidas (siguen siendo lo que se guarda)
-  const manual = document.createElement('div'); manual.style.cssText = 'display:none;margin-top:8px';
-  if (label) { label.textContent = 'Rutas (una por línea: foto grande | miniatura)'; manual.appendChild(label); }
-  manual.appendChild(ta);
-  if (hint) { hint.textContent = 'Para fotos que ya están en la carpeta public de la tienda, escribe su ruta aquí.'; manual.appendChild(hint); }
-  parent.append(tools, manual); ta.photoTools = tools;
+  parent.insertBefore(tools, label || ta); ta.photoTools = tools;
 
-  const drop = tools.querySelector('.photo-drop'), toggle = tools.querySelector('.photo-manual-toggle');
+  const drop = tools.querySelector('.photo-drop');
   const mark = (on) => { drop.style.borderColor = on ? 'var(--primary)' : 'var(--border)'; drop.style.background = on ? 'rgba(59,130,246,.08)' : 'transparent'; };
   drop.addEventListener('click', () => pick(tools, ta));
   drop.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(tools, ta); } });
   ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); mark(true); }));
   ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); mark(false); }));
   drop.addEventListener('drop', (e) => handleFiles([...(e.dataTransfer?.files || [])], tools, ta));
-  toggle.addEventListener('click', () => { const open = manual.style.display === 'none'; manual.style.display = open ? 'block' : 'none'; toggle.textContent = open ? 'Ocultar rutas' : 'Editar rutas manualmente'; });
   ta.addEventListener('input', () => render(tools, ta));
 }
 
