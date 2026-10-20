@@ -108,5 +108,21 @@ function refreshAll() { document.querySelectorAll('#pm-gallery, [data-f="gallery
 // si sueltas una foto fuera de la zona, el navegador no la abre (y no te saca del panel)
 ['dragover', 'drop'].forEach((ev) => window.addEventListener(ev, (e) => { if (e.dataTransfer?.types?.includes('Files')) e.preventDefault(); }));
 
-// panel.js ya cargó: se envuelven sus funciones para activar las herramientas al abrir el formulario o añadir variantes
-['openProductModal', 'addVariantRow'].forEach((name) => { const f = window[name]; if (typeof f === 'function') window[name] = (...a) => { const r = f(...a); refreshAll(); return r; }; });
+// Espera a que panel.js termine de definir sus funciones en window, luego las envuelve.
+// panel.js llama enter() al final, que hace loadAll(); refreshAll se conecta justo antes de que
+// el usuario pueda abrir el formulario por primera vez.
+function patchWhenReady() {
+  ['openProductModal', 'addVariantRow'].forEach((name) => {
+    const f = window[name];
+    if (typeof f === 'function' && !f._photos) {
+      const wrapped = (...a) => { const r = f(...a); setTimeout(refreshAll, 0); return r; };
+      wrapped._photos = true; window[name] = wrapped;
+    }
+  });
+}
+// Intenta ahora y cada 200 ms hasta que las funciones existan (máx. 5 seg)
+let attempts = 0;
+const wait = setInterval(() => {
+  patchWhenReady();
+  if (window.openProductModal?._photos || ++attempts > 25) clearInterval(wait);
+}, 200);
